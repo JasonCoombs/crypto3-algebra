@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -30,7 +30,6 @@
 #include <nil/crypto3/algebra/curves/detail/mnt6/basic_policy.hpp>
 #include <nil/crypto3/algebra/curves/detail/scalar_mul.hpp>
 
-#include <nil/crypto3/detail/type_traits.hpp>
 #include <nil/crypto3/detail/literals.hpp>
 
 namespace nil {
@@ -39,16 +38,16 @@ namespace nil {
             namespace curves {
                 namespace detail {
                     /** @brief A struct representing a group G2 of mnt6 curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct mnt6_g2;
                     /** @brief A struct representing an element from the group G2 of mnt6 curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct element_mnt6_g2 { };
                     /** @brief A struct representing an elememnt from the group G2 of mnt6 curve.
                      *
@@ -60,7 +59,7 @@ namespace nil {
                         using group_type = mnt6_g2<298>;
 
                         using policy_type = mnt6_basic_policy<298>;
-                        constexpr static const std::size_t g1_field_bits = policy_type::base_field_bits; ///< size of the base field in bits 
+                        
                         typedef typename policy_type::g1_field_type::value_type g1_field_type_value;
                         typedef typename policy_type::g2_field_type::value_type g2_field_type_value;
 
@@ -71,23 +70,20 @@ namespace nil {
                         underlying_field_value_type Z;
 
                         /*************************  Constructors and zero/one  ***********************************/
-                         /** @brief 
+                        /** @brief
                          *    @return the point at infinity by default
                          *
                          */
-                        element_mnt6_g2() :
-                            element_mnt6_g2(underlying_field_value_type::zero(), underlying_field_value_type::one(),
-                                            underlying_field_value_type::zero()) {};
-                        // must be
-                        // element_mnt6_g2() : element_mnt6_g2(zero_fill[0], zero_fill[1], zero_fill[2]) {};
-                        // when constexpr fields will be finished
-                        /** @brief 
+                        constexpr element_mnt6_g2() : element_mnt6_g2(policy_type::g2_zero_fill[0], 
+                            policy_type::g2_zero_fill[1], policy_type::g2_zero_fill[2]) {};
+
+                        /** @brief
                          *    @return the selected point $(X:Y:Z)$
                          *
                          */
-                        element_mnt6_g2(underlying_field_value_type X,
-                                        underlying_field_value_type Y,
-                                        underlying_field_value_type Z) {
+                        constexpr element_mnt6_g2(underlying_field_value_type X,
+                                                  underlying_field_value_type Y,
+                                                  underlying_field_value_type Z) {
                             this->X = X;
                             this->Y = Y;
                             this->Z = Z;
@@ -95,31 +91,20 @@ namespace nil {
                         /** @brief Get the point at infinity
                          *
                          */
-                        static element_mnt6_g2 zero() {
+                        constexpr static element_mnt6_g2 zero() {
                             return element_mnt6_g2();
                         }
                         /** @brief Get the generator of group G2
                          *
                          */
-                        static element_mnt6_g2 one() {
-                            return element_mnt6_g2(
-                                underlying_field_value_type(
-                                    0x34F7320A12B56CE532BCCB3B44902CBAA723CD60035ADA7404B743AD2E644AD76257E4C6813_cppui298,
-                                    0xCF41620BAA52EEC50E61A70AB5B45F681952E0109340FEC84F1B2890ABA9B15CAC5A0C80FA_cppui296,
-                                    0x11F99170E10E326433CCCB8032FB48007CA3C4E105CF31B056AC767E2CB01258391BD4917CE_cppui297),
-                                underlying_field_value_type(
-                                    0x3A65968F03CC64D62AD05C79C415E07EBD38B363EC48309487C0B83E1717A582C1B60FECC91_cppui298,
-                                    0xCA5E8427E5DB1506C1A24CEFC2451AB3ACCAEA5DB82DCB0C7117CC74402FAA5B2C37685C6E_cppui296,
-                                    0xF75D2DD88302C9A4EF941307629A1B3E197277D83ABB715F647C2E55A27BAF782F5C60E7F7_cppui296),
-                                underlying_field_value_type::one());
-                            // must be
-                            // return element_mnt6_g2(one_fill[0], one_fill[1], one_fill[2]);
-                            // when constexpr fields will be finished
+                        constexpr static element_mnt6_g2 one() {
+                            return element_mnt6_g2(policy_type::g2_one_fill[0], policy_type::g2_one_fill[1], 
+                                policy_type::g2_one_fill[2]);
                         }
 
                         /*************************  Comparison operations  ***********************************/
 
-                        bool operator==(const element_mnt6_g2 &other) const {
+                        constexpr bool operator==(const element_mnt6_g2 &other) const {
                             if (this->is_zero()) {
                                 return other.is_zero();
                             }
@@ -143,32 +128,31 @@ namespace nil {
                             return true;
                         }
 
-                        bool operator!=(const element_mnt6_g2 &other) const {
+                        constexpr bool operator!=(const element_mnt6_g2 &other) const {
                             return !(operator==(other));
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G2 is the point at infinity
                          */
-                        bool is_zero() const {
+                        constexpr bool is_zero() const {
                             return (this->X.is_zero() && this->Z.is_zero());
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G2 in affine coordinates
                          */
-                        bool is_special() const {
+                        constexpr bool is_special() const {
                             return (this->is_zero() || this->Z.is_one());
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G2 lies on the elliptic curve
                          */
-                        bool is_well_formed() const {
+                        constexpr bool is_well_formed() const {
                             if (this->is_zero()) {
                                 return true;
-                            }
-                            else {
+                            } else {
 
                                 /*
                                   y^2 = x^3 + ax + b
@@ -190,7 +174,7 @@ namespace nil {
                         }
                         /*************************  Arithmetic operations  ***********************************/
 
-                        element_mnt6_g2 operator=(const element_mnt6_g2 &other) {
+                        constexpr element_mnt6_g2 operator=(const element_mnt6_g2 &other) {
                             // handle special cases having to do with O
                             this->X = other.X;
                             this->Y = other.Y;
@@ -199,7 +183,7 @@ namespace nil {
                             return *this;
                         }
 
-                        element_mnt6_g2 operator+(const element_mnt6_g2 &other) const {
+                        constexpr element_mnt6_g2 operator+(const element_mnt6_g2 &other) const {
                             // handle special cases having to do with O
                             if (this->is_zero()) {
                                 return other;
@@ -216,18 +200,18 @@ namespace nil {
                             return this->add(other);
                         }
 
-                        element_mnt6_g2 operator-() const {
+                        constexpr element_mnt6_g2 operator-() const {
                             return element_mnt6_g2(this->X, -(this->Y), this->Z);
                         }
 
-                        element_mnt6_g2 operator-(const element_mnt6_g2 &other) const {
+                        constexpr element_mnt6_g2 operator-(const element_mnt6_g2 &other) const {
                             return (*this) + (-other);
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return doubled element from group G2
                          */
-                        element_mnt6_g2 doubled() const {
+                        constexpr element_mnt6_g2 doubled() const {
                             if (this->is_zero()) {
                                 return (*this);
                             } else {
@@ -255,12 +239,12 @@ namespace nil {
                                 return element_mnt6_g2(X3, Y3, Z3);
                             }
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * “Mixed addition” refers to the case Z2 known to be 1.
                          * @return addition of two elements from group G2
                          */
-                        element_mnt6_g2 mixed_add(const element_mnt6_g2 &other) const {
+                        constexpr element_mnt6_g2 mixed_add(const element_mnt6_g2 &other) const {
                             // NOTE: does not handle O and pts of order 2,4
                             // http://www.hyperelliptic.org/EFD/g1p/auto-shortw-projective.html#addition-add-1998-cmo-2
                             // assert(other.Z == underlying_field_value_type::one());
@@ -303,7 +287,7 @@ namespace nil {
                         }
 
                     private:
-                        element_mnt6_g2 add(const element_mnt6_g2 &other) const {
+                        constexpr element_mnt6_g2 add(const element_mnt6_g2 &other) const {
 
                             // NOTE: does not handle O and pts of order 2,4
                             // http://www.hyperelliptic.org/EFD/g1p/auto-shortw-projective.html#addition-add-1998-cmo-2
@@ -330,24 +314,24 @@ namespace nil {
                     public:
                         /*************************  Extra arithmetic operations  ***********************************/
 
-                        underlying_field_value_type mul_by_a(const underlying_field_value_type &elt) const {
+                        constexpr underlying_field_value_type mul_by_a(const underlying_field_value_type &elt) const {
                             return underlying_field_value_type(twist_mul_by_a_c0 * elt.data[1],
                                                                twist_mul_by_a_c1 * elt.data[2],
                                                                twist_mul_by_a_c2 * elt.data[0]);
                         }
 
-                        underlying_field_value_type mul_by_b(const underlying_field_value_type &elt) const {
+                        constexpr underlying_field_value_type mul_by_b(const underlying_field_value_type &elt) const {
                             return underlying_field_value_type(twist_mul_by_a_c0 * elt.data[0],
                                                                twist_mul_by_a_c1 * elt.data[1],
                                                                twist_mul_by_a_c2 * elt.data[2]);
                         }
 
                         /*************************  Reducing operations  ***********************************/
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from group G2 in affine coordinates
                          */
-                        element_mnt6_g2 to_affine_coordinates() const {
+                        constexpr element_mnt6_g2 to_affine() const {
                             underlying_field_value_type p_out[3];
 
                             if (this->is_zero()) {
@@ -363,12 +347,12 @@ namespace nil {
 
                             return element_mnt6_g2(p_out[0], p_out[1], p_out[2]);
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from group G2 in affine coordinates
                          */
-                        element_mnt6_g2 to_special() const {
-                            return this->to_affine_coordinates();
+                        constexpr element_mnt6_g2 to_projective() const {
+                            return this->to_affine();
                         }
 
                         /*element_mnt6_g2 mul_by_q() const {
@@ -377,55 +361,58 @@ namespace nil {
                                            (this->Z).Frobenius_map(1));
                         }*/
 
-                        /*constexpr static */ const g1_field_type_value g1_a = g1_field_type_value(policy_type::a);
-                        /*constexpr static */ const g1_field_type_value g1_b = g1_field_type_value(policy_type::b);
+                        constexpr static const g1_field_type_value g1_a = g1_field_type_value(policy_type::a);
+                        constexpr static const g1_field_type_value g1_b = g1_field_type_value(policy_type::b);
 
-                        /*constexpr static */ const g2_field_type_value twist = g2_field_type_value(
-                            {g2_field_type_value::underlying_type::zero(), g2_field_type_value::underlying_type::one(),
-                             g2_field_type_value::underlying_type::zero()});
+                        constexpr static const g2_field_type_value twist = g2_field_type_value(
+                            g2_field_type_value::underlying_type::zero(), g2_field_type_value::underlying_type::one(),
+                            g2_field_type_value::underlying_type::zero());
 
-                        /*constexpr static */ const underlying_field_value_type a =
+                        constexpr static const underlying_field_value_type a =
                             underlying_field_value_type(g2_field_type_value::underlying_type::zero(),
                                                         g2_field_type_value::underlying_type::zero(), g1_a);
 
-                        /*constexpr static */ const underlying_field_value_type b = underlying_field_value_type(
-                            g1_b * twist.non_residue, g2_field_type_value::underlying_type::zero(),
-                            g2_field_type_value::underlying_type::zero());
-                        // must be
-                        // underlying_field_value_type(g1_b * twist.non_residue,
-                        // when constexpr fields will be finished
+                        constexpr static const underlying_field_value_type b = underlying_field_value_type(
+                            g1_b * underlying_field_value_type::non_residue,
+                            g2_field_type_value::underlying_type::zero(), g2_field_type_value::underlying_type::zero());
 
-                        /*constexpr static */ const g2_field_type_value twist_coeff_a = a;
-                        /*constexpr static */ const g2_field_type_value twist_coeff_b = b;
+                        constexpr static const g2_field_type_value twist_coeff_a = a;
+                        constexpr static const g2_field_type_value twist_coeff_b = b;
 
+                        constexpr static const g1_field_type_value twist_mul_by_a_c0 =
+                            g1_a * underlying_field_value_type::non_residue;
+                        constexpr static const g1_field_type_value twist_mul_by_a_c1 =
+                            g1_a * underlying_field_value_type::non_residue;
+                        constexpr static const g1_field_type_value twist_mul_by_a_c2 = g1_a;
+                        constexpr static const g1_field_type_value twist_mul_by_b_c0 =
+                            g1_b * underlying_field_value_type::non_residue;
+                        constexpr static const g1_field_type_value twist_mul_by_b_c1 =
+                            g1_b * underlying_field_value_type::non_residue;
+                        constexpr static const g1_field_type_value twist_mul_by_b_c2 =
+                            g1_b * underlying_field_value_type::non_residue;
+                    
                     private:
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_a_c0 = g1_a * twist.non_residue;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_a_c1 = g1_a * twist.non_residue;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_a_c2 = g1_a;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_b_c0 = g1_b * twist.non_residue;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_b_c1 = g1_b * twist.non_residue;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_b_c2 = g1_b * twist.non_residue;
 
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_q_X = g1_field_type_value(
+                        constexpr static const g1_field_type_value twist_mul_by_q_X = g1_field_type_value(
                             0x8696C330D743F33B572CEF4DF62CE7ECB178EE24E48D1A53736E86448E74CB48DAACBB414_cppui298);
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_q_Y = g1_field_type_value(
+                        constexpr static const g1_field_type_value twist_mul_by_q_Y = g1_field_type_value(
                             0x3BCF7BCD473A266249DA7B0548ECAEEC9635CF44194FB494C07925D6AD3BB4334A400000000_cppui298);
-
-                        /*constexpr static const underlying_field_value_type zero_fill = {
-                            underlying_field_value_type::zero(), underlying_field_value_type::one(),
-                            underlying_field_value_type::zero()};
-
-                        constexpr static const underlying_field_value_type one_fill = {
-                            underlying_field_value_type(
-                                0x34F7320A12B56CE532BCCB3B44902CBAA723CD60035ADA7404B743AD2E644AD76257E4C6813_cppui298,
-                                0xCF41620BAA52EEC50E61A70AB5B45F681952E0109340FEC84F1B2890ABA9B15CAC5A0C80FA_cppui296,
-                                0x11F99170E10E326433CCCB8032FB48007CA3C4E105CF31B056AC767E2CB01258391BD4917CE_cppui297),
-                            underlying_field_value_type(
-                                0x3A65968F03CC64D62AD05C79C415E07EBD38B363EC48309487C0B83E1717A582C1B60FECC91_cppui298,
-                                0xCA5E8427E5DB1506C1A24CEFC2451AB3ACCAEA5DB82DCB0C7117CC74402FAA5B2C37685C6E_cppui296,
-                                0xF75D2DD88302C9A4EF941307629A1B3E197277D83ABB715F647C2E55A27BAF782F5C60E7F7_cppui296),
-                            underlying_field_value_type::one()};*/
                     };
+
+                    constexpr typename element_mnt6_g2<298>::g2_field_type_value const element_mnt6_g2<298>::twist;
+
+                    constexpr
+                        typename element_mnt6_g2<298>::g2_field_type_value const element_mnt6_g2<298>::twist_coeff_a;
+
+                    constexpr
+                        typename element_mnt6_g2<298>::g2_field_type_value const element_mnt6_g2<298>::twist_coeff_b;
+
+                    constexpr typename element_mnt6_g2<298>::g1_field_type_value const element_mnt6_g2<298>::twist_mul_by_a_c0;
+                    constexpr typename element_mnt6_g2<298>::g1_field_type_value const element_mnt6_g2<298>::twist_mul_by_a_c1;
+                    constexpr typename element_mnt6_g2<298>::g1_field_type_value const element_mnt6_g2<298>::twist_mul_by_a_c2;
+                    constexpr typename element_mnt6_g2<298>::g1_field_type_value const element_mnt6_g2<298>::twist_mul_by_b_c0;
+                    constexpr typename element_mnt6_g2<298>::g1_field_type_value const element_mnt6_g2<298>::twist_mul_by_b_c1;
+                    constexpr typename element_mnt6_g2<298>::g1_field_type_value const element_mnt6_g2<298>::twist_mul_by_b_c2;
 
                 }    // namespace detail
             }        // namespace curves

@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -24,14 +24,13 @@
 // SOFTWARE.
 //---------------------------------------------------------------------------//
 
-#ifndef CRYPTO3_ALGEBRA_CURVES_EDWARDS_G1_ELEMENT_HPP
-#define CRYPTO3_ALGEBRA_CURVES_EDWARDS_G1_ELEMENT_HPP
+#ifndef CRYPTO3_ALGEBRA_CURVES_EDWARDS_183_G1_ELEMENT_HPP
+#define CRYPTO3_ALGEBRA_CURVES_EDWARDS_183_G1_ELEMENT_HPP
 
-#include <nil/crypto3/algebra/curves/detail/edwards/basic_policy.hpp>
-#include <nil/crypto3/algebra/curves/detail/edwards/g2.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/edwards183/basic_policy.hpp>
+
 #include <nil/crypto3/algebra/curves/detail/scalar_mul.hpp>
 
-#include <nil/crypto3/detail/type_traits.hpp>
 #include <nil/crypto3/detail/literals.hpp>
 
 namespace nil {
@@ -40,27 +39,27 @@ namespace nil {
             namespace curves {
                 namespace detail {
                     /** @brief A struct representing a group G1 of Edwards curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct edwards_g1;
                     /** @brief A struct representing an element from the group G1 of edwards curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct element_edwards_g1 { };
                     /** @brief A struct representing an element from the group G1 of edwards curve.
                      *
-                     * The size of the group G1 in bits equals 181.
                      */
                     template<>
                     struct element_edwards_g1<183> {
+                        constexpr static const std::size_t version = 183;
 
-                        using group_type = edwards_g1<183>;
+                        using group_type = edwards_g1<version>;
 
-                        using policy_type = edwards_basic_policy<183>;
+                        using policy_type = edwards_basic_policy<version>;
                         using underlying_field_type = typename policy_type::g1_field_type;
 
                         using g1_field_type_value = typename policy_type::g1_field_type::value_type;
@@ -73,35 +72,31 @@ namespace nil {
                         underlying_field_value_type Z;
 
                         /*************************  Constructors and zero/one  ***********************************/
-                        /** @brief 
+                        /** @brief
                          *    @return the point at infinity by default
                          *
                          */
-                        element_edwards_g1() :
-                            element_edwards_g1(underlying_field_value_type::zero(),
-                                               underlying_field_value_type::one(),
-                                               underlying_field_value_type::zero()) {};
-                        // must be
-                        // element_edwards_g1() : element_edwards_g1(zero_fill[0], zero_fill[1], zero_fill[2]) {};
-                        // when constexpr fields will be finished
+                        constexpr element_edwards_g1() : element_edwards_g1(policy_type::g1_zero_fill[0], 
+                            policy_type::g1_zero_fill[1], policy_type::g1_zero_fill[2]) {};
 
-                        /** @brief 
+                        /** @brief
                          *    @return the selected point $(X:Y:Z)$ in the projective coordinates
                          *
                          */
-                        element_edwards_g1(underlying_field_value_type in_X, underlying_field_value_type in_Y,
+                        constexpr element_edwards_g1(underlying_field_value_type in_X, underlying_field_value_type in_Y,
                                            underlying_field_value_type in_Z) {
-                            this->X = X;
-                            this->Y = Y;
-                            this->Z = Z;
+                            this->X = in_X;
+                            this->Y = in_Y;
+                            this->Z = in_Z;
                         };
-                        /** @brief 
+                        /** @brief
                          *    @return the selected point $(X:Y:X*Y)$ in the inverted coordinates
                          *
                          */
-                        element_edwards_g1(underlying_field_value_type X, underlying_field_value_type Y) :
-                            element_edwards_g1(X, Y, X * Y) {};
-                         /** @brief Get the point at infinity
+                        constexpr element_edwards_g1(underlying_field_value_type X, underlying_field_value_type Y) :
+                            element_edwards_g1(Y, X, X * Y) {};
+
+                        /** @brief Get the point at infinity
                          *
                          */
                         static element_edwards_g1 zero() {
@@ -111,15 +106,8 @@ namespace nil {
                          *
                          */
                         static element_edwards_g1 one() {
-                            return element_edwards_g1(
-                                underlying_field_value_type(0x26C5DF4587AA6A5D345EFC9F2D47F8B1656517EF618F7A_cppui182),
-                                underlying_field_value_type(
-                                    0x32D83D8AAA0C500F57B15FDA90B1AD111067F812C7DD27_cppui182));    // it's better to
-                                                                                                    // precompute also
-                                                                                                    // one_fill[2]
-                            // must be
-                            // return element_edwards_g1(one_fill[0], one_fill[1]);    // it's better to precompute also
-                            // one_fill[2] when constexpr fields will be finished
+                            return element_edwards_g1(policy_type::g1_one_fill[0], policy_type::g1_one_fill[1], 
+                                policy_type::g1_one_fill[2]);
                         }
 
                         /*************************  Comparison operations  ***********************************/
@@ -152,14 +140,14 @@ namespace nil {
                             return !(operator==(other));
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G1 is the point at infinity
                          */
                         bool is_zero() const {
                             return (this->Y.is_zero() && this->Z.is_zero());
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G1 in affine coordinates
                          */
                         bool is_special() const {
@@ -201,8 +189,8 @@ namespace nil {
                         element_edwards_g1 operator-(const element_edwards_g1 &B) const {
                             return (*this) + (-B);
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return doubled element from group G1
                          */
                         element_edwards_g1 doubled() const {
@@ -226,8 +214,8 @@ namespace nil {
                                 return element_edwards_g1(X3, Y3, Z3);
                             }
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * “Mixed addition” refers to the case Z2 known to be 1.
                          * @return addition of two elements from group G1
                          */
@@ -283,11 +271,11 @@ namespace nil {
 
                     public:
                         /*************************  Reducing operations  ***********************************/
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from inverted coordinates to affine coordinates
                          */
-                        element_edwards_g1 to_affine_coordinates() const {
+                        element_edwards_g1 to_affine() const {
                             underlying_field_value_type p_out[3];
 
                             if (this->is_zero()) {
@@ -308,11 +296,11 @@ namespace nil {
 
                             return element_edwards_g1(p_out[0], p_out[1], p_out[2]);
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from projective coordinates to affine coordinates
                          */
-                        element_edwards_g1 to_special() const {
+                        element_edwards_g1 to_projective() const {
                             underlying_field_value_type p_out[3];
 
                             if (this->Z.is_zero()) {
@@ -328,21 +316,17 @@ namespace nil {
                         }
 
                     private:
-                        /*constexpr static */ const g1_field_type_value a = g1_field_type_value(policy_type::a);
-                        /*constexpr static */ const g1_field_type_value d = g1_field_type_value(policy_type::d);
-
-                        /*constexpr static const underlying_field_value_type zero_fill = {
-                            underlying_field_value_type::zero(), underlying_field_value_type::one(),
-                            underlying_field_value_type::zero()};
-
-                        constexpr static const underlying_field_value_type one_fill = {
-                            underlying_field_value_type(0x26C5DF4587AA6A5D345EFC9F2D47F8B1656517EF618F7A_cppui182),
-                            underlying_field_value_type(0x32D83D8AAA0C500F57B15FDA90B1AD111067F812C7DD27_cppui182)};*/
+                        constexpr static const g1_field_type_value a = policy_type::a;
+                        constexpr static const g1_field_type_value d = policy_type::d;
                     };
+
+                    constexpr typename element_edwards_g1<183>::g1_field_type_value const element_edwards_g1<183>::a;
+                    
+                    constexpr typename element_edwards_g1<183>::g1_field_type_value const element_edwards_g1<183>::d;
 
                 }    // namespace detail
             }        // namespace curves
         }            // namespace algebra
     }                // namespace crypto3
 }    // namespace nil
-#endif    // CRYPTO3_ALGEBRA_CURVES_EDWARDS_G1_ELEMENT_HPP
+#endif    // CRYPTO3_ALGEBRA_CURVES_EDWARDS_183_G1_ELEMENT_HPP

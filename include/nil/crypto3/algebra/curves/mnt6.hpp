@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -39,38 +39,48 @@ namespace nil {
         namespace algebra {
             namespace curves {
                 /** @brief A struct representing a mnt6 curve.
-                 *    @tparam ModulusBits size of the base field in bits 
+                 *    @tparam Version version of the curve
                  *
                  */
-                template<std::size_t ModulusBits>
-                struct mnt6 {
+                template<std::size_t Version>
+                class mnt6 {
 
-                    using policy_type = detail::mnt6_basic_policy<ModulusBits>;
+                    using policy_type = detail::mnt6_basic_policy<Version>;
 
+                public:
                     typedef typename policy_type::base_field_type base_field_type;
                     typedef typename policy_type::scalar_field_type scalar_field_type;
                     typedef typename policy_type::number_type number_type;
                     typedef typename policy_type::extended_number_type extended_number_type;
 
-                    constexpr static const std::size_t base_field_bits = policy_type::base_field_bits;///< size of the base field in bits 
-                    constexpr static const number_type p = policy_type::p;///< base field characteristic
+                    constexpr static const number_type p = policy_type::p;    ///< base field characteristic
 
-                    constexpr static const std::size_t scalar_field_bits = policy_type::scalar_field_bits;///< size of the scalar field (order of the group of points) in bits 
-                    constexpr static const number_type q = policy_type::q;///< scalar field characteristic (order of the group of points)
+                    constexpr static const number_type q =
+                        policy_type::q;    ///< scalar field characteristic (order of the group of points)
 
-                    typedef typename detail::mnt6_g1<ModulusBits> g1_type;
-                    typedef typename detail::mnt6_g2<ModulusBits> g2_type;
+                    typedef typename detail::mnt6_g1<Version> g1_type;
+                    typedef typename detail::mnt6_g2<Version> g2_type;
 
-                    typedef typename pairing::pairing_policy<mnt6<ModulusBits>,
-                                                             pairing::detail::mnt6_pairing_functions<ModulusBits>>
-                        pairing_policy;
+                    typedef typename pairing::pairing_policy<mnt6<Version>,
+                                                             pairing::detail::mnt6_pairing_functions<Version>>
+                        pairing;
+
+                    typedef typename pairing::pair_curve_type chained_on_curve_type;
 
                     typedef typename policy_type::gt_field_type gt_type;
 
                     constexpr static const bool has_affine_pairing = true;
+
+                    constexpr static const number_type a = policy_type::a;
+                    constexpr static const number_type b = policy_type::b;
                 };
 
                 typedef mnt6<298> mnt6_298;
+
+                template<std::size_t Version>
+                constexpr typename mnt6<Version>::number_type const mnt6<Version>::a;
+                template<std::size_t Version>
+                constexpr typename mnt6<Version>::number_type const mnt6<Version>::b;
 
             }    // namespace curves
         }        // namespace algebra

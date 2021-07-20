@@ -1,5 +1,5 @@
 #---------------------------------------------------------------------------#
-# Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
+# Copyright (c) 2018-2021 Mikhail Komarov <nemo@nil.foundation>
 #
 # Distributed under the Boost Software License, Version 1.0
 # See accompanying file LICENSE_1_0.txt or copy at
@@ -14,7 +14,7 @@ endif()
 
 cm_test_link_libraries(${CMAKE_WORKSPACE_NAME}_${CURRENT_PROJECT_NAME}
 
-                       $<TARGET_NAME_IF_EXISTS:boost_multiprecision>
+                       ${CMAKE_WORKSPACE_NAME}::multiprecision
 
                        ${Boost_LIBRARIES})
 
@@ -28,13 +28,20 @@ macro(define_runtime_algebra_test name)
 
                                ${Boost_INCLUDE_DIRS})
 
-    set_target_properties(algebra_${name}_test PROPERTIES CXX_STANDARD 17)
+    set_target_properties(algebra_${name}_test PROPERTIES CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED TRUE)
 
     get_target_property(target_type Boost::unit_test_framework TYPE)
     if(target_type STREQUAL "SHARED_LIB")
         target_compile_definitions(algebra_${name}_test PRIVATE BOOST_TEST_DYN_LINK)
     elseif(target_type STREQUAL "STATIC_LIB")
 
+    endif()
+
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        target_compile_options(algebra_${name}_test PRIVATE "-fconstexpr-steps=2147483647")
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        target_compile_options(algebra_${name}_test PRIVATE "-fconstexpr-ops-limit=4294967295")
     endif()
 endmacro()
 
@@ -59,7 +66,9 @@ endmacro()
 
 set(RUNTIME_TESTS_NAMES
     "curves"
+    "curves_static"
     "fields"
+    "fields_static"
     "pairing"
     "hash_to_curve"
     "wnaf"

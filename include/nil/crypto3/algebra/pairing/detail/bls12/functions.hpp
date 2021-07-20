@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -28,8 +28,8 @@
 
 #include <nil/crypto3/algebra/pairing/detail/bls12/basic_policy.hpp>
 
-#include <boost/multiprecision/number.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
+#include <nil/crypto3/multiprecision/number.hpp>
+#include <nil/crypto3/multiprecision/cpp_int.hpp>
 
 namespace nil {
     namespace crypto3 {
@@ -37,7 +37,7 @@ namespace nil {
             namespace pairing {
                 namespace detail {
 
-                    template<std::size_t ModulusBits = 381>
+                    template<std::size_t Version = 381>
                     class bls12_pairing_functions;
 
                     template<>
@@ -45,19 +45,29 @@ namespace nil {
                         using policy_type = bls12_basic_policy<381>;
 
                     public:
-                        typedef typename policy_type::Fq Fq;
-                        using Fq2 = typename policy_type::Fq2;
-                        typedef typename policy_type::gt gt;
-                        using g1 = typename policy_type::g1;
-                        using g2 = typename policy_type::g2;
+                        using fp_type = typename policy_type::fp_type;
+                        using fq_type = typename policy_type::fq_type;
+                        using fqe_type = typename policy_type::fqe_type;
+                        using fqk_type = typename policy_type::fqk_type;
 
-                        typedef typename policy_type::Fp_field Fp_field;
-                        typedef typename policy_type::Fq_field Fq_field;
-                        typedef typename policy_type::Fqe_field Fqe_field;
-                        typedef typename policy_type::Fqk_field Fqk_field;
+                        using g1_type = typename policy_type::g1_type;
+                        using g2_type = typename policy_type::g2_type;
+                        using gt_type = typename policy_type::gt_type;
 
                         constexpr static const typename policy_type::number_type ate_loop_count =
                             policy_type::ate_loop_count;
+
+                    private:
+                        using g1 = typename g1_type::value_type;
+                        using g2 = typename g2_type::value_type;
+                        using Fq = typename fq_type::value_type;
+                        using Fq2 = typename fqe_type::value_type;
+                        using gt = typename fqk_type::value_type;
+
+                    public:
+                        constexpr static const typename g2_type::underlying_field_type::value_type twist =
+                            g2_type::value_type::twist;
+                        // but it's better to implement a structure pairing_params with such values
 
                         struct ate_g1_precomp {
                             using value_type = Fq;
@@ -205,11 +215,8 @@ namespace nil {
                             current.Y = G.squared() - (E_squared + E_squared + E_squared);    // Y3 = G^2 - 3*E^2
                             current.Z = B * H;                                                // Z3 = B * H
                             c.ell_0 = I;                                                      // ell_0 = xi * I
-                            c.ell_VW = -current.twist * H;    // ell_VW = - H (later: * yP)
-                            // msut be
-                            // c.ell_VW = -g2::twist * H;                                  // ell_VW = - H (later: * yP)
-                            // when constexpr will be ready
-                            c.ell_VV = J + J + J;    // ell_VV = 3*J (later: * xP)
+                            c.ell_VW = -g2::twist * H;    // ell_VW = - H (later: * yP)
+                            c.ell_VV = J + J + J;         // ell_VV = 3*J (later: * xP)
                         }
 
                         static void mixed_addition_step_for_miller_loop(const g2 base, g2 &current, ate_ell_coeffs &c) {
@@ -230,15 +237,12 @@ namespace nil {
                             current.Z = Z1 * H;                    // Z3 = Z1*H
                             c.ell_0 = E * x2 - D * y2;             // ell_0 = xi * (E * X2 - D * Y2)
                             c.ell_VV = -E;                         // ell_VV = - E (later: * xP)
-                            c.ell_VW = current.twist * D;          // ell_VW = D (later: * yP    )
-                            // msut be
-                            // c.ell_VW = g2::twist * D;        // ell_VW = D (later: * yP    )
-                            // when constexpr will be ready
+                            c.ell_VW = g2::twist * D;              // ell_VW = D (later: * yP    )
                         }
 
                         static ate_g1_precomp ate_precompute_g1(const g1 &P) {
 
-                            g1 Pcopy = P.to_affine_coordinates();
+                            g1 Pcopy = P.to_affine();
 
                             ate_g1_precomp result;
                             result.PX = Pcopy.X;
@@ -249,7 +253,7 @@ namespace nil {
 
                         static ate_g2_precomp ate_precompute_g2(const g2 &Q) {
 
-                            g2 Qcopy(Q.to_affine_coordinates());
+                            g2 Qcopy(Q.to_affine());
 
                             Fq two_inv = (Fq(0x02).inversed());    // could add to global params if needed
 
@@ -268,7 +272,7 @@ namespace nil {
                             ate_ell_coeffs c;
 
                             for (long i = policy_type::number_type_max_bits; i >= 0; --i) {
-                                const bool bit = boost::multiprecision::bit_test(loop_count, i);
+                                const bool bit = multiprecision::bit_test(loop_count, i);
                                 if (!found_one) {
                                     /* this skips the MSB itself */
                                     found_one |= bit;
@@ -299,7 +303,7 @@ namespace nil {
                             ate_ell_coeffs c;
 
                             for (long i = policy_type::number_type_max_bits; i >= 0; --i) {
-                                const bool bit = boost::multiprecision::bit_test(loop_count, i);
+                                const bool bit = multiprecision::bit_test(loop_count, i);
                                 if (!found_one) {
                                     /* this skips the MSB itself */
                                     found_one |= bit;
@@ -338,7 +342,7 @@ namespace nil {
                             const typename policy_type::number_type &loop_count = policy_type::ate_loop_count;
 
                             for (long i = policy_type::number_type_max_bits; i >= 0; --i) {
-                                const bool bit = boost::multiprecision::bit_test(loop_count, i);
+                                const bool bit = nil::crypto3::multiprecision::bit_test(loop_count, i);
                                 if (!found_one) {
                                     /* this skips the MSB itself */
                                     found_one |= bit;
@@ -375,15 +379,15 @@ namespace nil {
                             return f;
                         }
 
-                        static gt ate_pairing(const g1 &P, const g2 &Q) {
+                        static gt ate_pair(const g1 &P, const g2 &Q) {
                             ate_g1_precomp prec_P = ate_precompute_g1(P);
                             ate_g2_precomp prec_Q = ate_precompute_g2(Q);
                             gt result = ate_miller_loop(prec_P, prec_Q);
                             return result;
                         }
 
-                        static gt ate_reduced_pairing(const g1 &P, const g2 &Q) {
-                            const gt f = ate_pairing(P, Q);
+                        static gt ate_pair_reduced(const g1 &P, const g2 &Q) {
+                            const gt f = ate_pair(P, Q);
                             const gt result = final_exponentiation(f);
                             return result;
                         }
@@ -408,12 +412,12 @@ namespace nil {
                             return ate_double_miller_loop(prec_P1, prec_Q1, prec_P2, prec_Q2);
                         }
 
-                        static gt pairing(const g1 &P, const g2 &Q) {
-                            return ate_pairing(P, Q);
+                        static gt pair(const g1 &P, const g2 &Q) {
+                            return ate_pair(P, Q);
                         }
 
-                        static gt reduced_pairing(const g1 &P, const g2 &Q) {
-                            return ate_reduced_pairing(P, Q);
+                        static gt pair_reduced(const g1 &P, const g2 &Q) {
+                            return ate_pair_reduced(P, Q);
                         }
                     };
                 }    // namespace detail

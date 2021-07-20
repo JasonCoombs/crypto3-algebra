@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -27,7 +27,9 @@
 #ifndef CRYPTO3_ALGEBRA_CURVES_EDWARDS_HPP
 #define CRYPTO3_ALGEBRA_CURVES_EDWARDS_HPP
 
-#include <nil/crypto3/algebra/curves/detail/edwards/basic_policy.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/edwards183/basic_policy.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/jubjub/basic_policy.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/babyjubjub/basic_policy.hpp>
 #include <nil/crypto3/algebra/curves/detail/edwards/g1.hpp>
 #include <nil/crypto3/algebra/curves/detail/edwards/g2.hpp>
 
@@ -40,31 +42,30 @@ namespace nil {
             namespace curves {
 
                 /** @brief A struct representing a Edwards curve, providing 128 bits of security.
-                 *    @tparam ModulusBits size of the base field in bits 
+                 *    @tparam Version version of the curve
                  *
                  */
-                template<std::size_t ModulusBits>
+                template<std::size_t Version>
                 struct edwards {
 
-                    using policy_type = detail::edwards_basic_policy<ModulusBits>;
+                    using policy_type = detail::edwards_basic_policy<Version>;
 
                     typedef typename policy_type::base_field_type base_field_type;
                     typedef typename policy_type::scalar_field_type scalar_field_type;
                     typedef typename policy_type::number_type number_type;
                     typedef typename policy_type::extended_number_type extended_number_type;
 
-                    constexpr static const std::size_t base_field_bits = policy_type::base_field_bits;  ///< size of the base field in bits 
-                    constexpr static const number_type p = policy_type::p; ///< base field characteristic
+                    constexpr static const number_type p = policy_type::p;    ///< base field characteristic
 
-                    constexpr static const std::size_t scalar_field_bits = policy_type::scalar_field_bits; ///< size of the scalar field (order of the group of points) in bits 
-                    constexpr static const number_type q = policy_type::q; ///< scalar field characteristic (order of the group of points)
+                    constexpr static const number_type q =
+                        policy_type::q;    ///< scalar field characteristic (order of the group of points)
 
-                    typedef typename detail::edwards_g1<ModulusBits> g1_type;
-                    typedef typename detail::edwards_g2<ModulusBits> g2_type;
+                    typedef typename detail::edwards_g1<Version> g1_type;
+                    typedef typename detail::edwards_g2<Version> g2_type;
 
-                    typedef typename pairing::pairing_policy<edwards<ModulusBits>,
-                                                             pairing::detail::edwards_pairing_functions<ModulusBits>>
-                        pairing_policy;
+                    typedef typename pairing::pairing_policy<edwards<Version>,
+                                                             pairing::detail::edwards_pairing_functions<Version>>
+                        pairing;
 
                     typedef typename policy_type::gt_field_type gt_type;
 

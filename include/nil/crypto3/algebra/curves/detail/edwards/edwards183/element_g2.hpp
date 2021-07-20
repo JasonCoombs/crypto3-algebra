@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -25,13 +25,12 @@
 //---------------------------------------------------------------------------//
 
 #ifndef CRYPTO3_ALGEBRA_CURVES_EDWARDS_G2_ELEMENT_HPP
-#define CRYPTO3_ALGEBRA_CURVES_EDWARDS_G1_ELEMENT_HPP
+#define CRYPTO3_ALGEBRA_CURVES_EDWARDS_G2_ELEMENT_HPP
 
-#include <nil/crypto3/algebra/curves/detail/edwards/basic_policy.hpp>
-#include <nil/crypto3/algebra/curves/detail/edwards/g1.hpp>
-#include <nil/crypto3/algebra/curves/detail/scalar_mul.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/edwards183/basic_policy.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/jubjub/basic_policy.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/babyjubjub/basic_policy.hpp>
 
-#include <nil/crypto3/detail/type_traits.hpp>
 #include <nil/crypto3/detail/literals.hpp>
 
 namespace nil {
@@ -40,20 +39,19 @@ namespace nil {
             namespace curves {
                 namespace detail {
                     /** @brief A struct representing a group G2 of Edwards curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct edwards_g2;
-                     /** @brief A struct representing an element from the group G2 of Edwards curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                    /** @brief A struct representing an element from the group G2 of Edwards curve.
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct element_edwards_g2 { };
                     /** @brief A struct representing an elememnt from the group G2 of Edwards curve.
                      *
-                     * The size of the group G1 in bits equals 181.
                      */
                     template<>
                     struct element_edwards_g2<183> {
@@ -61,7 +59,6 @@ namespace nil {
                         using group_type = edwards_g2<183>;
 
                         using policy_type = edwards_basic_policy<183>;
-                        constexpr static const std::size_t g1_field_bits = policy_type::base_field_bits;
                         typedef typename policy_type::g1_field_type::value_type g1_field_type_value;
                         typedef typename policy_type::g2_field_type::value_type g2_field_type_value;
 
@@ -72,70 +69,45 @@ namespace nil {
                         underlying_field_value_type Z;
 
                         /*************************  Constructors and zero/one  ***********************************/
-                        /** @brief 
+                        /** @brief
                          *    @return the point at infinity by default
                          *
                          */
-                        element_edwards_g2() :
-                            element_edwards_g2(underlying_field_value_type::zero(), underlying_field_value_type::one(),
-                                                underlying_field_value_type::zero())  {};
-                        // must be
-                        // element_edwards_g2() : element_edwards_g2(one_fill[0], one_fill[1]) {};
-                        // when constexpr fields will be finished
-                        
-                        /** @brief 
+                        constexpr element_edwards_g2() : element_edwards_g2(policy_type::g2_zero_fill[0], policy_type::g2_zero_fill[1], policy_type::g2_zero_fill[2]) {};
+
+                        /** @brief
                          *    @return the selected point $(X:Y:Z)$ in the projective coordinates
                          *
                          */
-                        element_edwards_g2(underlying_field_value_type in_X, underlying_field_value_type in_Y,
+                        constexpr element_edwards_g2(underlying_field_value_type in_X, underlying_field_value_type in_Y,
                                            underlying_field_value_type in_Z) {
-                            this->X = X;
-                            this->Y = Y;
-                            this->Z = Z;
-
-                            // temporary, until fp3 will be literall
-                            twist_mul_by_a_c0 = a * X.non_residue;
-                            twist_mul_by_d_c0 = d * X.non_residue;
+                            this->X = in_X;
+                            this->Y = in_Y;
+                            this->Z = in_Z;
                         };
-                        /** @brief 
+                        /** @brief
                          *    @return the selected point $(X:Y:X*Y)$ in the inverted coordinates
                          *
                          */
-                        element_edwards_g2(underlying_field_value_type X, underlying_field_value_type Y) :
+                        constexpr element_edwards_g2(underlying_field_value_type X, underlying_field_value_type Y) :
                             element_edwards_g2(X, Y, X * Y) {};
                         /** @brief Get the point at infinity
                          *
                          */
-                        static element_edwards_g2 zero() {
-                            return element_edwards_g2(underlying_field_value_type::zero(),
-                                                      underlying_field_value_type::one(),
-                                                      underlying_field_value_type::zero());
-                            // must be
-                            // return element_edwards_g2(zero_fill[0], zero_fill[1], zero_fill[2]);
-                            // when constexpr fields will be finished
+                        constexpr static element_edwards_g2 zero() {
+                            return element_edwards_g2(policy_type::g2_zero_fill[0], policy_type::g2_zero_fill[1], policy_type::g2_zero_fill[2]);
                         }
                         /** @brief Get the generator of group G2
                          *
                          */
-                        static element_edwards_g2 one() {
-                            return element_edwards_g2(
-                                underlying_field_value_type(0x2F501F9482C0D0D6E80AC55A79FD4D4594CAF187952660_cppui182,
-                                                            0x37BF8F1B1CDA11A81E8BB8F41B5FF462C9A13DC7DE1578_cppui182,
-                                                            0x2962F0DA0C7928B2CFBBACE3D0354652B6922A764C12D8_cppui182),
-                                underlying_field_value_type(
-                                    0x3CE954C85AD30F53B1BB4C4F87029780F4141927FEB19_cppui178,
-                                    0x2214EB976DE3A4D9DF9C8D5F7AEDFEC337E03A20B32FFF_cppui182,
-                                    0x249774AB0EDC7FE2E665DDBFE08594F3071E0B3AC994C3_cppui182));    // it's better to
-                                                                                                    // precompute also
-                                                                                                    // one_fill[2]
-                            // must be
-                            // return element_edwards_g2(one_fill[0], one_fill[1]);    // it's better to precompute also
-                            // one_fill[2] when constexpr fields will be finished
+                        constexpr static element_edwards_g2 one() {
+                            return element_edwards_g2(policy_type::g2_one_fill[0], policy_type::g2_one_fill[1]);    // it's better to precompute also
+                            // policy_type::g2_one_fill[2] 
                         }
 
                         /*************************  Comparison operations  ***********************************/
 
-                        bool operator==(const element_edwards_g2 &other) const {
+                        constexpr bool operator==(const element_edwards_g2 &other) const {
                             if (this->is_zero()) {
                                 return other.is_zero();
                             }
@@ -159,27 +131,27 @@ namespace nil {
                             return true;
                         }
 
-                        bool operator!=(const element_edwards_g2 &other) const {
+                        constexpr bool operator!=(const element_edwards_g2 &other) const {
                             return !(operator==(other));
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G2 is the point at infinity
                          */
-                        bool is_zero() const {
+                        constexpr bool is_zero() const {
                             return (this->Y.is_zero() && this->Z.is_zero());
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G2 in affine coordinates
                          */
-                        bool is_special() const {
+                        constexpr bool is_special() const {
                             return (this->is_zero() || this->Z == underlying_field_value_type::one());
                         }
 
                         /*************************  Arithmetic operations  ***********************************/
 
-                        element_edwards_g2 operator=(const element_edwards_g2 &other) {
+                        constexpr element_edwards_g2 operator=(const element_edwards_g2 &other) {
                             // handle special cases having to do with O
                             this->X = other.X;
                             this->Y = other.Y;
@@ -188,7 +160,7 @@ namespace nil {
                             return *this;
                         }
 
-                        element_edwards_g2 operator+(const element_edwards_g2 &other) const {
+                        constexpr element_edwards_g2 operator+(const element_edwards_g2 &other) const {
                             // handle special cases having to do with O
                             if (this->is_zero()) {
                                 return other;
@@ -205,18 +177,18 @@ namespace nil {
                             return this->add(other);
                         }
 
-                        element_edwards_g2 operator-() const {
+                        constexpr element_edwards_g2 operator-() const {
                             return element_edwards_g2(-(this->X), this->Y, this->Z);
                         }
 
-                        element_edwards_g2 operator-(const element_edwards_g2 &other) const {
+                        constexpr element_edwards_g2 operator-(const element_edwards_g2 &other) const {
                             return (*this) + (-other);
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return doubled element from group G2
                          */
-                        element_edwards_g2 doubled() const {
+                        constexpr element_edwards_g2 doubled() const {
 
                             if (this->is_zero()) {
                                 return (*this);
@@ -239,12 +211,12 @@ namespace nil {
                                 return element_edwards_g2(X3, Y3, Z3);
                             }
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * “Mixed addition” refers to the case Z2 known to be 1.
                          * @return addition of two elements from group G2
                          */
-                        element_edwards_g2 mixed_add(const element_edwards_g2 &other) const {
+                        constexpr element_edwards_g2 mixed_add(const element_edwards_g2 &other) const {
 
                             // handle special cases having to do with O
                             if (this->is_zero()) {
@@ -274,7 +246,7 @@ namespace nil {
                         }
 
                     private:
-                        element_edwards_g2 add(const element_edwards_g2 &other) const {
+                        constexpr element_edwards_g2 add(const element_edwards_g2 &other) const {
                             // NOTE: does not handle O and pts of order 2,4
                             // http://www.hyperelliptic.org/EFD/g1p/auto-twisted-inverted.html#addition-add-2008-bbjlp
 
@@ -296,25 +268,25 @@ namespace nil {
                     public:
                         /*************************  Extra arithmetic operations  ***********************************/
 
-                        /*inline static */ underlying_field_value_type
-                            mul_by_a(const underlying_field_value_type &elt) const {
+                        constexpr inline static underlying_field_value_type
+                            mul_by_a(const underlying_field_value_type &elt) {
                             return underlying_field_value_type(twist_mul_by_a_c0 * elt.data[2], elt.data[0],
                                                                elt.data[1]);
                         }
 
-                        /*inline static */ underlying_field_value_type
-                            mul_by_d(const underlying_field_value_type &elt) const {
+                        constexpr inline static underlying_field_value_type
+                            mul_by_d(const underlying_field_value_type &elt) {
                             return underlying_field_value_type(twist_mul_by_d_c0 * elt.data[2],
                                                                twist_mul_by_d_c1 * elt.data[0],
                                                                twist_mul_by_d_c2 * elt.data[1]);
                         }
 
                         /*************************  Reducing operations  ***********************************/
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from inverted coordinates to affine coordinates
                          */
-                        element_edwards_g2 to_affine_coordinates() const {
+                        constexpr element_edwards_g2 to_affine() const {
                             underlying_field_value_type p_out[3];
 
                             if (this->is_zero()) {
@@ -335,11 +307,11 @@ namespace nil {
 
                             return element_edwards_g2(p_out[0], p_out[1], p_out[2]);
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from projective coordinates to affine coordinates
                          */
-                        element_edwards_g2 to_special() const {
+                        constexpr element_edwards_g2 to_projective() const {
                             underlying_field_value_type p_out[3];
 
                             if (this->Z.is_zero()) {
@@ -354,42 +326,55 @@ namespace nil {
                             return element_edwards_g2(p_out[0], p_out[1], p_out[2]);
                         }
 
+                        constexpr static const g2_field_type_value twist = g2_field_type_value(
+                            g2_field_type_value::underlying_type::zero(), g2_field_type_value::underlying_type::one(),
+                            g2_field_type_value::underlying_type::zero());
+
                     private:
-                        /*constexpr static */ const g1_field_type_value a = g1_field_type_value(policy_type::a);
-                        /*constexpr static */ const g1_field_type_value d = g1_field_type_value(policy_type::d);
+                        constexpr static const g1_field_type_value a = policy_type::a;
+                        constexpr static const g1_field_type_value d = policy_type::d;
 
-                        /*constexpr static */ const g2_field_type_value twist = g2_field_type_value(
-                            {g2_field_type_value::underlying_type::zero(), g2_field_type_value::underlying_type::one(),
-                             g2_field_type_value::underlying_type::zero()});
-                        ;
-                        /*constexpr static */ const g2_field_type_value twist_coeff_a = a * twist;
-                        /*constexpr static */ const g2_field_type_value twist_coeff_d = d * twist;
+                        constexpr static const g2_field_type_value twist_coeff_a = a * twist;
+                        constexpr static const g2_field_type_value twist_coeff_d = d * twist;
 
-                        /*constexpr static const*/ g1_field_type_value twist_mul_by_a_c0;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_a_c1 = a;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_a_c2 = a;
-                        /*constexpr static const*/ g1_field_type_value twist_mul_by_d_c0;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_d_c1 = d;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_d_c2 = d;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_q_Y =
+                        constexpr static g1_field_type_value twist_mul_by_a_c0 = a * g2_field_type_value::non_residue;
+                        constexpr static const g1_field_type_value twist_mul_by_a_c1 = a;
+                        constexpr static const g1_field_type_value twist_mul_by_a_c2 = a;
+                        constexpr static g1_field_type_value twist_mul_by_d_c0 = d * g2_field_type_value::non_residue;
+                        constexpr static const g1_field_type_value twist_mul_by_d_c1 = d;
+                        constexpr static const g1_field_type_value twist_mul_by_d_c2 = d;
+                        constexpr static const g1_field_type_value twist_mul_by_q_Y =
                             g1_field_type_value(0xB35E3665A18365954D018902935D4419423F84321BC3E_cppui180);
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_q_Z =
+                        constexpr static const g1_field_type_value twist_mul_by_q_Z =
                             g1_field_type_value(0xB35E3665A18365954D018902935D4419423F84321BC3E_cppui180);
 
-                        /*constexpr static const underlying_field_value_type zero_fill = {
-                            underlying_field_value_type::zero(),
-                            underlying_field_value_type::one(),
-                            underlying_field_value_type::zero()};
-
-                        constexpr static const underlying_field_value_type one_fill = {
-                            underlying_field_value_type(0x2F501F9482C0D0D6E80AC55A79FD4D4594CAF187952660_cppui182,
-                                                        0x37BF8F1B1CDA11A81E8BB8F41B5FF462C9A13DC7DE1578_cppui182,
-                                                        0x2962F0DA0C7928B2CFBBACE3D0354652B6922A764C12D8_cppui182),
-                            underlying_field_value_type(0x3CE954C85AD30F53B1BB4C4F87029780F4141927FEB19_cppui178,
-                                                        0x2214EB976DE3A4D9DF9C8D5F7AEDFEC337E03A20B32FFF_cppui182,
-                                                        0x249774AB0EDC7FE2E665DDBFE08594F3071E0B3AC994C3_cppui182)};*/
                     };
 
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value const element_edwards_g2<183>::a;
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value const element_edwards_g2<183>::d;
+
+                    constexpr typename element_edwards_g2<183>::g2_field_type_value const
+                        element_edwards_g2<183>::twist_coeff_a;
+                    constexpr typename element_edwards_g2<183>::g2_field_type_value const
+                        element_edwards_g2<183>::twist_coeff_d;
+
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value const
+                        element_edwards_g2<183>::twist_mul_by_a_c1;
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value const
+                        element_edwards_g2<183>::twist_mul_by_a_c2;
+
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value const
+                        element_edwards_g2<183>::twist_mul_by_d_c1;
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value const
+                        element_edwards_g2<183>::twist_mul_by_d_c2;
+
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value const
+                        element_edwards_g2<183>::twist_mul_by_q_Y;
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value const
+                        element_edwards_g2<183>::twist_mul_by_q_Z;
+
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value element_edwards_g2<183>::twist_mul_by_a_c0;
+                    constexpr typename element_edwards_g2<183>::g1_field_type_value element_edwards_g2<183>::twist_mul_by_d_c0;
                 }    // namespace detail
             }        // namespace curves
         }            // namespace algebra

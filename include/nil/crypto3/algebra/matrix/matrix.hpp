@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -55,9 +55,9 @@ namespace nil {
                 // CRYPTO3_DETAIL_ASSERT_ARITHMETIC(T)
 
                 using value_type = T;
-                using std::size_type = std::size_t;
-                static constexpr std::size_type column_size = N;    ///< Number of rows
-                static constexpr std::size_type row_size = M;       ///< Number of columns
+                using size_type = std::size_t;
+                static constexpr size_type column_size = N;    ///< Number of rows
+                static constexpr size_type row_size = M;       ///< Number of columns
 
                 /** @name Element access */
                 ///@{

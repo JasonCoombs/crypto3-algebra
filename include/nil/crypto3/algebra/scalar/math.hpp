@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -27,7 +27,7 @@
 #ifndef CRYPTO3_ALGEBRA_SCALAR_MATH_HPP
 #define CRYPTO3_ALGEBRA_SCALAR_MATH_HPP
 
-#include <nil/crypto3/detail/type_traits.hpp>
+#include <nil/crypto3/algebra/type_traits.hpp>
 #include <nil/crypto3/detail/assert.hpp>
 
 namespace nil {
@@ -73,9 +73,9 @@ namespace nil {
              *  Computes the absolute value.
              */
             template<typename T>
-            constexpr detail::remove_complex_t<T> abs(T x) {
+            constexpr nil::crypto3::detail::remove_complex_t<T> abs(T x) {
                 // CRYPTO3_DETAIL_ASSERT_ARITHMETIC(T);
-                if constexpr (detail::is_complex_v<T>)
+                if constexpr (algebra::is_complex_v<T>)
                     return sqrt(x.real() * x.real() + x.imag() * x.imag());
                 else
                     return x > 0 ? x : -x;
@@ -137,7 +137,7 @@ namespace nil {
             template<typename T>
             constexpr T conj(T x) {
                 // CRYPTO3_DETAIL_ASSERT_ARITHMETIC(T);
-                if constexpr (detail::is_complex_v<T>)
+                if constexpr (algebra::is_complex_v<T>)
                     return {x.real(), -x.imag()};
                 else
                     return x;

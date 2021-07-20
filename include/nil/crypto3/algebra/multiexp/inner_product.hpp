@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Pavel Kharitonov <ipavrus@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Pavel Kharitonov <ipavrus@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -36,17 +36,13 @@ namespace nil {
     namespace crypto3 {
         namespace algebra {
 
-            template<typename BaseType>
-            typename BaseType::value_type
-                inner_product(typename std::vector<typename BaseType::value_type>::const_iterator a_start,
-                              typename std::vector<typename BaseType::value_type>::const_iterator a_end,
-                              typename std::vector<typename BaseType::value_type>::const_iterator b_start,
-                              typename std::vector<typename BaseType::value_type>::const_iterator b_end) {
-
-                return multiexp<BaseType, BaseType,
-                                policies::multiexp_method_naive_plain<BaseType, BaseType>>(a_start, a_end, b_start, b_end, 1);
+            template<typename InputBaseIterator>
+            inline typename std::iterator_traits<InputBaseIterator>::value_type inner_product(InputBaseIterator a_begin,
+                                                                                              InputBaseIterator a_end,
+                                                                                              InputBaseIterator b_begin,
+                                                                                              InputBaseIterator b_end) {
+                return multiexp<policies::multiexp_method_naive_plain>(a_begin, a_end, b_begin, b_end, 1);
             }
-
         }    // namespace algebra
     }        // namespace crypto3
 }    // namespace nil

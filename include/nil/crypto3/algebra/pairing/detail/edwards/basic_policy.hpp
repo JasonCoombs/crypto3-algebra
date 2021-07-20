@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -26,7 +26,6 @@
 #ifndef CRYPTO3_ALGEBRA_PAIRING_EDWARDS_BASIC_POLICY_HPP
 #define CRYPTO3_ALGEBRA_PAIRING_EDWARDS_BASIC_POLICY_HPP
 
-#include <nil/crypto3/algebra/curves/detail/edwards/basic_policy.hpp>
 #include <nil/crypto3/algebra/curves/detail/edwards/g1.hpp>
 #include <nil/crypto3/algebra/curves/detail/edwards/g2.hpp>
 
@@ -36,7 +35,7 @@ namespace nil {
             namespace pairing {
                 namespace detail {
 
-                    template<std::size_t ModulusBits = 183>
+                    template<std::size_t Version = 183>
                     struct edwards_basic_policy;
 
                     template<>
@@ -47,25 +46,21 @@ namespace nil {
                         typedef typename policy_type::number_type number_type;
                         typedef typename policy_type::extended_number_type extended_number_type;
 
-                        using g1_group = curves::detail::edwards_g1<183>;
-                        using g2_group = curves::detail::edwards_g2<183>;
-                        typedef typename policy_type::scalar_field_type Fp_field;
-                        using Fq_field = typename policy_type::g1_field_type;
-                        using Fqe_field = typename policy_type::g2_field_type;
-                        typedef typename policy_type::gt_field_type Fqk_field;
+                        using fp_type = typename policy_type::scalar_field_type;
+                        using fq_type = typename policy_type::g1_field_type;
+                        using fqe_type = typename policy_type::g2_field_type;
+                        using fqk_type = typename policy_type::gt_field_type;
 
-                        using g1 = typename g1_group::value_type;
-                        using g2 = typename g2_group::value_type;
-                        typedef typename Fq_field::value_type Fq;
-                        using Fq3 = typename Fqe_field::value_type;
-                        typedef typename Fqk_field::value_type gt;
+                        using g1_type = curves::detail::edwards_g1<183>;
+                        using g2_type = curves::detail::edwards_g2<183>;
+                        using gt_type = typename policy_type::gt_field_type;
 
-                        constexpr static const std::size_t base_field_bits = policy_type::base_field_bits;
-                        constexpr static const number_type base_field_modulus = policy_type::base_field_modulus;
-                        constexpr static const std::size_t scalar_field_bits = policy_type::scalar_field_bits;
-                        constexpr static const number_type scalar_field_modulus = policy_type::scalar_field_modulus;
+                        constexpr static const std::size_t base_field_bits = policy_type::base_field_type::modulus_bits;
+                        constexpr static const number_type base_field_modulus = policy_type::base_field_type::modulus;
+                        constexpr static const std::size_t scalar_field_bits = policy_type::scalar_field_type::modulus_bits;
+                        constexpr static const number_type scalar_field_modulus = policy_type::scalar_field_type::modulus;
 
-                        constexpr static const std::size_t number_type_max_bits = policy_type::base_field_bits;
+                        constexpr static const std::size_t number_type_max_bits = base_field_bits;
 
                         constexpr static const number_type ate_loop_count =
                             number_type(0xE841DEEC0A9E39280000003_cppui92);

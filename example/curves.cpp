@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -25,15 +25,17 @@
 
 #include <iostream>
 
-#include <boost/multiprecision/cpp_modular.hpp>
-#include <boost/multiprecision/number.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
-#include <boost/multiprecision/modular/modular_adaptor.hpp>
+#include <nil/crypto3/multiprecision/cpp_modular.hpp>
+#include <nil/crypto3/multiprecision/number.hpp>
+#include <nil/crypto3/multiprecision/cpp_int.hpp>
+#include <nil/crypto3/multiprecision/modular/modular_adaptor.hpp>
 
 #include <nil/crypto3/algebra/curves/alt_bn128.hpp>
 #include <nil/crypto3/algebra/curves/bls12.hpp>
 //#include <nil/crypto3/algebra/curves/bn128.hpp>
 #include <nil/crypto3/algebra/curves/edwards.hpp>
+#include <nil/crypto3/algebra/curves/jubjub.hpp>
+#include <nil/crypto3/algebra/curves/babyjubjub.hpp>
 #include <nil/crypto3/algebra/curves/mnt4.hpp>
 #include <nil/crypto3/algebra/curves/mnt6.hpp>
 
@@ -201,6 +203,28 @@ int main() {
 
     std::cout << "Edwards curve g2 group basic math:" << std::endl;
     fp3_curve_group_basic_math_examples<curves::edwards<183>::g2_type>();
+
+    std::cout << "----------------------------" << std::endl;
+
+    std::cout << "BabyJubJub curve g1 group basic math:" << std::endl;
+    fp_curve_group_basic_math_examples<curves::babyjubjub::g1_type>();
+
+    using babyjubjub_g1_type = typename curves::babyjubjub::g1_type;
+    using bjj_g1_f_v = typename babyjubjub_g1_type::underlying_field_type::value_type;
+
+    typename babyjubjub_g1_type::value_type 
+                        P1(bjj_g1_f_v(0x274DBCE8D15179969BC0D49FA725BDDF9DE555E0BA6A693C6ADB52FC9EE7A82C_cppui254),
+                           bjj_g1_f_v(0x5CE98C61B05F47FE2EAE9A542BD99F6B2E78246231640B54595FEBFD51EB853_cppui251)), 
+                        P2(bjj_g1_f_v(0x2491ABA8D3A191A76E35BC47BD9AFE6CC88FEE14D607CBE779F2349047D5C157_cppui254),
+                           bjj_g1_f_v(0x2E07297F8D3C3D7818DBDDFD24C35583F9A9D4ED0CB0C1D1348DD8F7F99152D7_cppui254)),
+                        P3(bjj_g1_f_v(0x11805510440A3488B3B811EAACD0EC7C72DDED51978190E19067A2AFAEBAF361_cppui253),
+                           bjj_g1_f_v(0x1F07AA1B3C598E2FF9FF77744A39298A0A89A9027777AF9FA100DD448E072C13_cppui253));
+
+    typename babyjubjub_g1_type::value_type P1pP2 = P1 + P2;
+    std::cout << "BabyJubJub addition test: " << std::endl;
+    print_fp_curve_group_element(P1pP2);
+    print_fp_curve_group_element(P3);
+    assert(P1pP2 == P3);
 
     std::cout << "----------------------------" << std::endl;
 

@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -28,10 +28,8 @@
 #define CRYPTO3_ALGEBRA_CURVES_MNT4_G1_ELEMENT_HPP
 
 #include <nil/crypto3/algebra/curves/detail/mnt4/basic_policy.hpp>
-#include <nil/crypto3/algebra/curves/detail/mnt4/g2.hpp>
 #include <nil/crypto3/algebra/curves/detail/scalar_mul.hpp>
 
-#include <nil/crypto3/detail/type_traits.hpp>
 #include <nil/crypto3/detail/literals.hpp>
 
 namespace nil {
@@ -41,17 +39,17 @@ namespace nil {
                 namespace detail {
 
                     /** @brief A struct representing a group G1 of mnt4 curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct mnt4_g1;
 
                     /** @brief A struct representing an element from the group G1 of mnt4 curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct element_mnt4_g1 { };
                     /** @brief A struct representing an element from the group G1 of mnt4 curve.
                      *
@@ -63,7 +61,7 @@ namespace nil {
                         using group_type = mnt4_g1<298>;
 
                         using policy_type = mnt4_basic_policy<298>;
-                        constexpr static const std::size_t g1_field_bits = policy_type::base_field_bits; ///< size of the base field in bits 
+                        
                         typedef typename policy_type::g1_field_type::value_type g1_field_type_value;
                         typedef typename policy_type::g2_field_type::value_type g2_field_type_value;
 
@@ -74,61 +72,50 @@ namespace nil {
                         underlying_field_value_type Z;
 
                         /*************************  Constructors and zero/one  ***********************************/
-                        
-                        /** @brief 
+
+                        /** @brief
                          *    @return the point at infinity by default
                          *
                          */
-                        element_mnt4_g1() :
-                            element_mnt4_g1(underlying_field_value_type::zero(), underlying_field_value_type::one(),
-                                            underlying_field_value_type::zero()) {};
-                        // must be
-                        // element_mnt4_g1() : element_mnt4_g1(zero_fill[0], zero_fill[1], zero_fill[2]) {};
-                        // when constexpr fields will be finished
+                        constexpr element_mnt4_g1() : element_mnt4_g1(policy_type::g1_zero_fill[0], policy_type::g1_zero_fill[1], policy_type::g1_zero_fill[2]) {};
 
-                        /** @brief 
+                        /** @brief
                          *    @return the selected affine point $(X:Y:1)$
                          *
                          */
-                        element_mnt4_g1(const underlying_field_value_type& X, 
-                                        const underlying_field_value_type& Y) : 
-                                        X(X), Y(Y), Z(underlying_field_value_type::one()) {};
+                        constexpr element_mnt4_g1(const underlying_field_value_type &X,
+                                                  const underlying_field_value_type &Y) :
+                            X(X),
+                            Y(Y), Z(underlying_field_value_type::one()) {};
 
                         /** @brief
                          *    @return the selected point (X:Y:Z)
                          *
                          */
-                        element_mnt4_g1(underlying_field_value_type X,
-                                        underlying_field_value_type Y,
-                                        underlying_field_value_type Z) {
+                        constexpr element_mnt4_g1(underlying_field_value_type X,
+                                                  underlying_field_value_type Y,
+                                                  underlying_field_value_type Z) {
                             this->X = X;
                             this->Y = Y;
                             this->Z = Z;
                         };
-                         /** @brief Get the point at infinity
+                        /** @brief Get the point at infinity
                          *
                          */
-                        static element_mnt4_g1 zero() {
+                        constexpr static element_mnt4_g1 zero() {
                             return element_mnt4_g1();
                         }
                         /** @brief Get the generator of group G1
                          *
                          */
-                        static element_mnt4_g1 one() {
-                            return element_mnt4_g1(
-                                underlying_field_value_type(
-                                    0x7A2CAF82A1BA85213FE6CA3875AEE86ABA8F73D69060C4079492B948DEA216B5B9C8D2AF46_cppui295),
-                                underlying_field_value_type(
-                                    0x2DB619461CC82672F7F159FEC2E89D0148DCC9862D36778C1AFD96A71E29CBA48E710A48AB2_cppui298),
-                                underlying_field_value_type::one());
-                            // must be
-                            // element_mnt4_g1() : element_mnt4_g1(zero_fill[0], zero_fill[1], zero_fill[2]) {};
-                            // when constexpr fields will be finished
+                        constexpr static element_mnt4_g1 one() {
+                            return element_mnt4_g1(policy_type::g1_one_fill[0], policy_type::g1_one_fill[1], 
+                                policy_type::g1_one_fill[2]);
                         }
 
                         /*************************  Comparison operations  ***********************************/
 
-                        bool operator==(const element_mnt4_g1 &other) const {
+                        constexpr bool operator==(const element_mnt4_g1 &other) const {
                             if (this->is_zero()) {
                                 return other.is_zero();
                             }
@@ -152,32 +139,31 @@ namespace nil {
                             return true;
                         }
 
-                        bool operator!=(const element_mnt4_g1 &other) const {
+                        constexpr bool operator!=(const element_mnt4_g1 &other) const {
                             return !(operator==(other));
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G1 is the point at infinity
                          */
-                        bool is_zero() const {
+                        constexpr bool is_zero() const {
                             return (this->X.is_zero() && this->Z.is_zero());
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G1 in affine coordinates
                          */
-                        bool is_special() const {
+                        constexpr bool is_special() const {
                             return (this->is_zero() || this->Z.is_one());
                         }
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G1 lies on the elliptic curve
                          */
-                        bool is_well_formed() const {
+                        constexpr bool is_well_formed() const {
                             if (this->is_zero()) {
                                 return true;
-                            }
-                            else {
+                            } else {
                                 /*
                                   y^2 = x^3 + ax + b
 
@@ -192,14 +178,13 @@ namespace nil {
                                 const underlying_field_value_type Y2 = this->Y.squared();
                                 const underlying_field_value_type Z2 = this->Z.squared();
 
-                                return (this->Z * (Y2 - b * Z2) == 
-                                            this->X * (X2 + a * Z2));
+                                return (this->Z * (Y2 - b * Z2) == this->X * (X2 + a * Z2));
                             }
                         }
 
                         /*************************  Arithmetic operations  ***********************************/
 
-                        element_mnt4_g1 operator=(const element_mnt4_g1 &other) {
+                        constexpr element_mnt4_g1 operator=(const element_mnt4_g1 &other) {
                             // handle special cases having to do with O
                             this->X = other.X;
                             this->Y = other.Y;
@@ -208,7 +193,7 @@ namespace nil {
                             return *this;
                         }
 
-                        element_mnt4_g1 operator+(const element_mnt4_g1 &other) const {
+                        constexpr element_mnt4_g1 operator+(const element_mnt4_g1 &other) const {
                             // handle special cases having to do with O
                             if (this->is_zero()) {
                                 return other;
@@ -225,18 +210,18 @@ namespace nil {
                             return this->add(other);
                         }
 
-                        element_mnt4_g1 operator-() const {
+                        constexpr element_mnt4_g1 operator-() const {
                             return element_mnt4_g1(this->X, -this->Y, this->Z);
                         }
 
-                        element_mnt4_g1 operator-(const element_mnt4_g1 &other) const {
+                        constexpr element_mnt4_g1 operator-(const element_mnt4_g1 &other) const {
                             return (*this) + (-other);
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return doubled element from group G1
                          */
-                        element_mnt4_g1 doubled() const {
+                        constexpr element_mnt4_g1 doubled() const {
 
                             if (this->is_zero()) {
                                 return (*this);
@@ -264,12 +249,12 @@ namespace nil {
                                 return element_mnt4_g1(X3, Y3, Z3);
                             }
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * “Mixed addition” refers to the case Z2 known to be 1.
                          * @return addition of two elements from group G1
                          */
-                        element_mnt4_g1 mixed_add(const element_mnt4_g1 &other) const {
+                        constexpr element_mnt4_g1 mixed_add(const element_mnt4_g1 &other) const {
 
                             // NOTE: does not handle O and pts of order 2,4
                             // http://www.hyperelliptic.org/EFD/g1p/auto-shortw-projective.html#addition-add-1998-cmo-2
@@ -312,7 +297,7 @@ namespace nil {
                         }
 
                     private:
-                        element_mnt4_g1 add(const element_mnt4_g1 &other) const {
+                        constexpr element_mnt4_g1 add(const element_mnt4_g1 &other) const {
 
                             // NOTE: does not handle O and pts of order 2,4
                             // http://www.hyperelliptic.org/EFD/g1p/auto-shortw-projective.html#addition-add-1998-cmo-2
@@ -338,11 +323,11 @@ namespace nil {
 
                     public:
                         /*************************  Reducing operations  ***********************************/
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from group G1 in affine coordinates
                          */
-                        element_mnt4_g1 to_affine_coordinates() const {
+                        constexpr element_mnt4_g1 to_affine() const {
                             underlying_field_value_type p_out[3];
 
                             if (this->is_zero()) {
@@ -358,49 +343,25 @@ namespace nil {
 
                             return element_mnt4_g1(p_out[0], p_out[1], p_out[2]);
                         }
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from group G1 in affine coordinates
                          */
-                        element_mnt4_g1 to_special() const {
-                            return this->to_affine_coordinates();
+                        constexpr element_mnt4_g1 to_projective() const {
+                            return this->to_affine();
                         }
 
                     private:
-                        /*constexpr static */ const g1_field_type_value a = g1_field_type_value(policy_type::a);
-                        /*constexpr static */ const g1_field_type_value b = g1_field_type_value(policy_type::b);
+                        constexpr static const g1_field_type_value a = policy_type::a;
+                        constexpr static const g1_field_type_value b = policy_type::b;
 
-                        /*constexpr static const g2_field_type_value twist =
-                            g2_field_type_value(typename g2_field_type_value::underlying_type::zero(),
-                                                typename g2_field_type_value::underlying_type::one());
-
-                        static const g2_field_type_value twist_coeff_a = mnt4_g2<ModulusBits>::a;
-                        static const g2_field_type_value twist_coeff_b = mnt4_g2<ModulusBits>::b;
-
-                        static const g1_field_type_value twist_mul_by_a_c0 =
-                            element_mnt4_g1<ModulusBits>::a * g2_field_type_value::non_residue;
-                        static const g1_field_type_value twist_mul_by_a_c1 =
-                            element_mnt4_g1<ModulusBits>::a * g2_field_type_value::non_residue;
-                        static const g1_field_type_value twist_mul_by_b_c0 =
-                            element_mnt4_g1<ModulusBits>::b * g2_field_type_value::non_residue.squared();
-                        static const g1_field_type_value twist_mul_by_b_c1 =
-                            element_mnt4_g1<ModulusBits>::b * g2_field_type_value::non_residue;
-                        static const g1_field_type_value twist_mul_by_q_X = g1_field_type_value(
-                            0x3BCF7BCD473A266249DA7B0548ECAEEC9635D1330EA41A9E35E51200E12C90CD65A71660000_cppui298);
-                        static const g1_field_type_value twist_mul_by_q_Y = g1_field_type_value(
-                            0xF73779FE09916DFDCC2FD1F968D534BEB17DAF7518CD9FAE5C1F7BDCF94DD5D7DEF6980C4_cppui292);*/
-
-                        /*constexpr static const underlying_field_value_type zero_fill = {
-                            underlying_field_value_type::zero(), underlying_field_value_type::one(),
-                            underlying_field_value_type::zero()};
-
-                        constexpr static const underlying_field_value_type one_fill = {
-                            underlying_field_value_type(
-                                0x7A2CAF82A1BA85213FE6CA3875AEE86ABA8F73D69060C4079492B948DEA216B5B9C8D2AF46_cppui295),
-                            underlying_field_value_type(
-                                0x2DB619461CC82672F7F159FEC2E89D0148DCC9862D36778C1AFD96A71E29CBA48E710A48AB2_cppui298),
-                            underlying_field_value_type::one()};*/
+                        constexpr static const g2_field_type_value twist =
+                            g2_field_type_value(g2_field_type_value::underlying_type::zero(),
+                                                g2_field_type_value::underlying_type::one());
                     };
+
+                    constexpr typename element_mnt4_g1<298>::g1_field_type_value const element_mnt4_g1<298>::a;
+                    constexpr typename element_mnt4_g1<298>::g1_field_type_value const element_mnt4_g1<298>::b;
 
                 }    // namespace detail
             }        // namespace curves

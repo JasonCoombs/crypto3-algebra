@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -40,10 +40,10 @@ namespace nil {
 
                 /*!
                  * @brief IETF IPsec groups
-                 * @tparam ModulusBits
+                 * @tparam Version
                  */
-                template<std::size_t ModulusBits>
-                struct frp_v1_scalar_field : public field<ModulusBits> { };
+                template<std::size_t Version>
+                struct frp_v1_scalar_field : public field<Version> { };
 
                 template<>
                 struct frp_v1_scalar_field<256> : public field<256> {
@@ -68,8 +68,8 @@ namespace nil {
 
                 constexpr typename frp_v1_scalar_field<256>::modulus_type const frp_v1_scalar_field<256>::modulus;
 
-                template<std::size_t ModulusBits = 256>
-                using frp_v1_fr = frp_v1_scalar_field<ModulusBits>;
+                template<std::size_t Version = 256>
+                using frp_v1_fr = frp_v1_scalar_field<Version>;
 
             }    // namespace fields
         }        // namespace algebra

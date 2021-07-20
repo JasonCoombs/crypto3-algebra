@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -28,7 +28,7 @@
 
 #include <nil/crypto3/algebra/fields/detail/exponentiation.hpp>
 
-#include <boost/multiprecision/wnaf.hpp>
+#include <nil/crypto3/multiprecision/wnaf.hpp>
 
 namespace nil {
     namespace crypto3 {
@@ -41,8 +41,8 @@ namespace nil {
                         typedef FieldParams policy_type;
 
                     public:
-                        /*constexpr static*/ const typename policy_type::non_residue_type non_residue =
-                            typename policy_type::non_residue_type(policy_type::non_residue);
+                        typedef typename policy_type::non_residue_type non_residue_type;
+                        constexpr static const non_residue_type non_residue = policy_type::non_residue;
 
                         typedef typename policy_type::underlying_type underlying_type;
 
@@ -50,77 +50,74 @@ namespace nil {
 
                         data_type data;
 
-                        element_fp6_2over3() {
+                        constexpr element_fp6_2over3() {
                             data = data_type({underlying_type::zero(), underlying_type::zero()});
                         }
 
-                        element_fp6_2over3(underlying_type in_data0, underlying_type in_data1) {
+                        constexpr element_fp6_2over3(underlying_type in_data0, underlying_type in_data1) {
                             data = data_type({in_data0, in_data1});
                         }
 
-                        element_fp6_2over3(const data_type &in_data) {
+                        constexpr element_fp6_2over3(const data_type &in_data) {
                             data = data_type({in_data[0], in_data[1]});
                         };
 
-                        element_fp6_2over3(const element_fp6_2over3 &other) {
-                            data[0] = underlying_type(other.data[0]);
-                            data[1] = underlying_type(other.data[1]);
-                        };
+                        constexpr element_fp6_2over3(const element_fp6_2over3 &B) : data {B.data} {};
 
-                        inline static element_fp6_2over3 zero() {
+                        constexpr inline static element_fp6_2over3 zero() {
                             return element_fp6_2over3(underlying_type::zero(), underlying_type::zero());
                         }
 
-                        inline static element_fp6_2over3 one() {
+                        constexpr inline static element_fp6_2over3 one() {
                             return element_fp6_2over3(underlying_type::one(), underlying_type::zero());
                         }
 
-                        bool operator==(const element_fp6_2over3 &B) const {
+                        constexpr bool operator==(const element_fp6_2over3 &B) const {
                             return (data[0] == B.data[0]) && (data[1] == B.data[1]);
                         }
 
-                        bool operator!=(const element_fp6_2over3 &B) const {
+                        constexpr bool operator!=(const element_fp6_2over3 &B) const {
                             return (data[0] != B.data[0]) || (data[1] != B.data[1]);
                         }
 
-                        element_fp6_2over3 &operator=(const element_fp6_2over3 &B) {
+                        constexpr element_fp6_2over3 &operator=(const element_fp6_2over3 &B) {
                             data[0] = B.data[0];
                             data[1] = B.data[1];
 
                             return *this;
                         }
 
-                        element_fp6_2over3 operator+(const element_fp6_2over3 &B) const {
+                        constexpr element_fp6_2over3 operator+(const element_fp6_2over3 &B) const {
                             return element_fp6_2over3(data[0] + B.data[0], data[1] + B.data[1]);
                         }
 
-                        element_fp6_2over3 doubled() const {
+                        constexpr element_fp6_2over3 doubled() const {
                             return element_fp6_2over3(data[0].doubled(), data[1].doubled());
                         }
 
-                        element_fp6_2over3 operator-(const element_fp6_2over3 &B) const {
+                        constexpr element_fp6_2over3 operator-(const element_fp6_2over3 &B) const {
                             return element_fp6_2over3(data[0] - B.data[0], data[1] - B.data[1]);
                         }
 
-                        element_fp6_2over3 &operator-=(const element_fp6_2over3 &B) {
+                        constexpr element_fp6_2over3 &operator-=(const element_fp6_2over3 &B) {
                             data[0] -= B.data[0];
                             data[1] -= B.data[1];
 
                             return *this;
                         }
 
-                        element_fp6_2over3 &operator+=(const element_fp6_2over3 &B) {
+                        constexpr element_fp6_2over3 &operator+=(const element_fp6_2over3 &B) {
                             data[0] += B.data[0];
                             data[1] += B.data[1];
 
                             return *this;
                         }
 
-                        element_fp6_2over3 operator-() const {
+                        constexpr element_fp6_2over3 operator-() const {
                             return zero() - *this;
                         }
 
-                        element_fp6_2over3 operator*(const element_fp6_2over3 &B) const {
+                        constexpr element_fp6_2over3 operator*(const element_fp6_2over3 &B) const {
                             const underlying_type A0B0 = data[0] * B.data[0], A1B1 = data[1] * B.data[1];
 
                             return element_fp6_2over3(A0B0 + mul_by_non_residue(A1B1),
@@ -132,23 +129,24 @@ namespace nil {
                             // compute squared root with Tonelli--Shanks
                         }
 
-                        element_fp6_2over3 squared() const {
+                        constexpr element_fp6_2over3 squared() const {
                             // return (*this) * (*this);    // maybe can be done more effective
 
-                            /* Devegili OhEig Scott Dahab --- Multiplication and Squaring on Pairing-Friendly Fields.pdf; Section 3 (Complex) */
+                            /* Devegili OhEig Scott Dahab --- Multiplication and Squaring on Pairing-Friendly
+                             * Fields.pdf; Section 3 (Complex) */
                             const underlying_type &B = data[1], &A = data[0];
                             const underlying_type AB = A * B;
 
-                            return element_fp6_2over3((A + B) * (A + mul_by_non_residue(B)) - AB - mul_by_non_residue(AB),
-                                                      AB + AB);
+                            return element_fp6_2over3(
+                                (A + B) * (A + mul_by_non_residue(B)) - AB - mul_by_non_residue(AB), AB + AB);
                         }
 
                         template<typename PowerType>
-                        element_fp6_2over3 pow(const PowerType &pwr) const {
+                        constexpr element_fp6_2over3 pow(const PowerType &pwr) const {
                             return element_fp6_2over3(power(*this, pwr));
                         }
 
-                        element_fp6_2over3 inversed() const {
+                        constexpr element_fp6_2over3 inversed() const {
 
                             /* From "High-Speed Software Implementation of the Optimal Ate Pairing over Barreto-Naehrig
                              * Curves"; Algorithm 8 */
@@ -166,7 +164,7 @@ namespace nil {
                         }
 
                         template<typename PowerType>
-                        element_fp6_2over3 Frobenius_map(const PowerType &pwr) const {
+                        constexpr element_fp6_2over3 Frobenius_map(const PowerType &pwr) const {
                             // return element_fp6_2over3(data[0].Frobenius_map(pwr),
                             //                           policy_type::Frobenius_coeffs_c1[pwr % 6] *
                             //                           data[1].Frobenius_map(pwr)});
@@ -176,7 +174,7 @@ namespace nil {
                                     data[1].Frobenius_map(pwr));
                         }
 
-                        element_fp6_2over3 unitary_inversed() const {
+                        constexpr element_fp6_2over3 unitary_inversed() const {
                             return element_fp6_2over3(data[0], -data[1]);
                         }
 
@@ -184,12 +182,12 @@ namespace nil {
                             using e_fp = typename underlying_type::underlying_type;
                             using e_fp2 = std::array<e_fp, 2>;
 
-                            auto fp2_squared = [&](const e_fp &A, const e_fp &B){
-                                /* Devegili OhEig Scott Dahab --- Multiplication and Squaring on Pairing-Friendly Fields.pdf; Section 3 (Complex squaring) */
+                            auto fp2_squared = [&](const e_fp &A, const e_fp &B) {
+                                /* Devegili OhEig Scott Dahab --- Multiplication and Squaring on Pairing-Friendly
+                                 * Fields.pdf; Section 3 (Complex squaring) */
                                 const e_fp AB = A * B;
 
-                                return e_fp2{(A + B) * (A + non_residue * B) - AB - non_residue * AB,
-                                             AB + AB};
+                                return e_fp2 {(A + B) * (A + non_residue * B) - AB - non_residue * AB, AB + AB};
                             };
 
                             // e_fp2 a(data[0].data[0], data[1].data[1]);
@@ -204,33 +202,32 @@ namespace nil {
                             e_fp2 csq = fp2_squared(data[0].data[1], data[1].data[2]);
 
                             // A = vector(3*a^2 - 2*Fp2([vector(a)[0],-vector(a)[1]]))
-                            //my_Fp A_a = my_Fp(3l) * asq_a - my_Fp(2l) * a_a;
+                            // my_Fp A_a = my_Fp(3l) * asq_a - my_Fp(2l) * a_a;
                             e_fp A_a = asq[0] - data[0].data[0];
                             A_a = A_a + A_a + asq[0];
-                            //my_Fp A_b = my_Fp(3l) * asq_b + my_Fp(2l) * a_b;
+                            // my_Fp A_b = my_Fp(3l) * asq_b + my_Fp(2l) * a_b;
                             e_fp A_b = asq[1] + data[1].data[1];
                             A_b = A_b + A_b + asq[1];
 
                             // B = vector(3*Fp2([non_residue*c2[1],c2[0]]) + 2*Fp2([vector(b)[0],-vector(b)[1]]))
-                            //my_Fp B_a = my_Fp(3l) * underlying_type::non_residue * csq_b + my_Fp(2l) * b_a;
+                            // my_Fp B_a = my_Fp(3l) * underlying_type::non_residue * csq_b + my_Fp(2l) * b_a;
                             e_fp B_tmp = non_residue * csq[1];
                             e_fp B_a = B_tmp + data[1].data[0];
                             B_a = B_a + B_a + B_tmp;
 
-                            //my_Fp B_b = my_Fp(3l) * csq_a - my_Fp(2l) * b_b;
+                            // my_Fp B_b = my_Fp(3l) * csq_a - my_Fp(2l) * b_b;
                             e_fp B_b = csq[0] - data[0].data[2];
                             B_b = B_b + B_b + csq[0];
 
                             // C = vector(3*b^2 - 2*Fp2([vector(c)[0],-vector(c)[1]]))
-                            //my_Fp C_a = my_Fp(3l) * bsq_a - my_Fp(2l) * c_a;
+                            // my_Fp C_a = my_Fp(3l) * bsq_a - my_Fp(2l) * c_a;
                             e_fp C_a = bsq[0] - data[0].data[1];
                             C_a = C_a + C_a + bsq[0];
                             // my_Fp C_b = my_Fp(3l) * bsq_b + my_Fp(2l) * c_b;
                             e_fp C_b = bsq[1] + data[1].data[2];
                             C_b = C_b + C_b + bsq[1];
 
-                            return element_fp6_2over3(underlying_type(A_a, C_a, B_b),
-                                                      underlying_type(B_a, A_b, C_b));
+                            return element_fp6_2over3(underlying_type(A_a, C_a, B_b), underlying_type(B_a, A_b, C_b));
                         }
 
                         template<typename PowerType>
@@ -242,7 +239,7 @@ namespace nil {
                             element_fp6_2over3 this_inverse = this->unitary_inversed();
 
                             bool found_nonzero = false;
-                            std::vector<long> NAF = boost::multiprecision::find_wnaf(1, exponent);
+                            std::vector<long> NAF = nil::crypto3::multiprecision::find_wnaf(1, exponent);
 
                             for (long i = static_cast<long>(NAF.size() - 1); i >= 0; --i) {
                                 if (found_nonzero) {
@@ -254,8 +251,7 @@ namespace nil {
 
                                     if (NAF[i] > 0) {
                                         res = res * (*this);
-                                    }
-                                    else {
+                                    } else {
                                         res = res * this_inverse;
                                     }
                                 }
@@ -264,7 +260,7 @@ namespace nil {
                             return res;
                         }
 
-                        /*inline static*/ underlying_type mul_by_non_residue(const underlying_type &A) const {
+                        constexpr /*inline static*/ underlying_type mul_by_non_residue(const underlying_type &A) const {
                             return underlying_type(non_residue * A.data[2], A.data[0], A.data[1]);
                         }
 
@@ -285,7 +281,7 @@ namespace nil {
                     };
 
                     template<typename FieldParams>
-                    element_fp6_2over3<FieldParams>
+                    constexpr element_fp6_2over3<FieldParams>
                         operator*(const typename FieldParams::underlying_type::underlying_type &lhs,
                                   const element_fp6_2over3<FieldParams> &rhs) {
 
@@ -293,12 +289,16 @@ namespace nil {
                     }
 
                     template<typename FieldParams>
-                    element_fp6_2over3<FieldParams>
+                    constexpr element_fp6_2over3<FieldParams>
                         operator*(const element_fp6_2over3<FieldParams> &lhs,
                                   const typename FieldParams::underlying_type::underlying_type &rhs) {
 
                         return rhs * lhs;
                     }
+
+                    template<typename FieldParams>
+                    constexpr const typename element_fp6_2over3<FieldParams>::non_residue_type
+                        element_fp6_2over3<FieldParams>::non_residue;
 
                 }    // namespace detail
             }        // namespace fields

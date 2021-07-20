@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -27,8 +27,15 @@
 #define CRYPTO3_ALGEBRA_FIELDS_ELEMENT_FP_HPP
 
 #include <nil/crypto3/algebra/fields/detail/exponentiation.hpp>
-#include <boost/multiprecision/ressol.hpp>
-#include <boost/multiprecision/inverse.hpp>
+
+#include <nil/crypto3/multiprecision/ressol.hpp>
+#include <nil/crypto3/multiprecision/inverse.hpp>
+#include <nil/crypto3/multiprecision/number.hpp>
+#include <nil/crypto3/multiprecision/cpp_int.hpp>
+
+#include <boost/type_traits/is_integral.hpp>
+
+#include <type_traits>
 
 namespace nil {
     namespace crypto3 {
@@ -52,127 +59,169 @@ namespace nil {
 
                         data_type data;
 
-                        element_fp() : data(data_type(0, modulus)) {};
+                        constexpr element_fp() : data(data_type(0, modulus)) {};
 
-                        element_fp(data_type data) : data(data) {};
+                        constexpr element_fp(data_type data) : data(data) {};
 
-                        element_fp(modulus_type data) : data(data, modulus) {};
+                        constexpr element_fp(modulus_type data) : data(data, modulus) {};
 
-                        element_fp(int data) : data(data, modulus) {};
+                        template<typename Number,
+                                 typename std::enable_if<boost::is_integral<Number>::value, bool>::type = true>
+                        constexpr element_fp(Number data) : data(data, modulus) {};
 
-                        element_fp(const element_fp &B) {
+                        constexpr element_fp(const element_fp &B) {
                             data = B.data;
                         };
 
-                        inline static element_fp zero() {
+                        constexpr inline static element_fp zero() {
                             return element_fp(0);
                         }
 
-                        inline static element_fp one() {
+                        constexpr inline static element_fp one() {
                             return element_fp(1);
                         }
 
-                        bool is_zero() const {
+                        constexpr bool is_zero() const {
                             return data == data_type(0, modulus);
                         }
 
-                        bool is_one() const {
+                        constexpr bool is_one() const {
                             return data == data_type(1, modulus);
                         }
 
-                        bool operator==(const element_fp &B) const {
+                        constexpr bool operator==(const element_fp &B) const {
                             return data == B.data;
                         }
 
-                        bool operator!=(const element_fp &B) const {
+                        constexpr bool operator!=(const element_fp &B) const {
                             return data != B.data;
                         }
 
-                        element_fp &operator=(const element_fp &B) {
+                        constexpr element_fp &operator=(const element_fp &B) {
                             data = B.data;
 
                             return *this;
                         }
 
-                        element_fp operator+(const element_fp &B) const {
+                        constexpr element_fp operator+(const element_fp &B) const {
                             return element_fp(data + B.data);
                         }
 
-                        element_fp operator-(const element_fp &B) const {
+                        constexpr element_fp operator-(const element_fp &B) const {
                             return element_fp(data - B.data);
                         }
 
-                        element_fp &operator-=(const element_fp &B) {
+                        constexpr element_fp &operator-=(const element_fp &B) {
                             data -= B.data;
 
                             return *this;
                         }
 
-                        element_fp &operator+=(const element_fp &B) {
+                        constexpr element_fp &operator+=(const element_fp &B) {
                             data += B.data;
 
                             return *this;
                         }
 
-                        element_fp &operator*=(const element_fp &B) {
+                        constexpr element_fp &operator*=(const element_fp &B) {
                             data *= B.data;
 
                             return *this;
                         }
 
-                        element_fp &operator/=(const element_fp &B) {
+                        constexpr element_fp &operator/=(const element_fp &B) {
                             data *= B.inversed().data;
 
                             return *this;
                         }
 
-                        element_fp operator-() const {
+                        constexpr element_fp operator-() const {
                             return element_fp(-data);
                         }
 
-                        element_fp operator*(const element_fp &B) const {
+                        constexpr element_fp operator*(const element_fp &B) const {
                             return element_fp(data * B.data);
                         }
 
-                        const element_fp operator/(const element_fp &B) const {
+                        constexpr element_fp operator/(const element_fp &B) const {
                             //                        return element_fp(data / B.data);
                             return element_fp(data * B.inversed().data);
                         }
 
-                        const bool operator<(const element_fp &B) const {
+                        constexpr bool operator<(const element_fp &B) const {
                             return data < B.data;
                         }
 
-                        const bool operator>(const element_fp &B) const {
+                        constexpr bool operator>(const element_fp &B) const {
                             return data > B.data;
                         }
 
-                        element_fp doubled() const {
+                        constexpr bool operator<=(const element_fp &B) const {
+                            return data <= B.data;
+                        }
+
+                        constexpr bool operator>=(const element_fp &B) const {
+                            return data >= B.data;
+                        }
+
+                        constexpr element_fp &operator++() {
+                            data = data + data_type(1, modulus);
+                            return *this;
+                        }
+
+                        constexpr element_fp operator++(int) {
+                            element_fp temp(*this);
+                            ++*this;
+                            return temp;
+                        }
+
+                        constexpr element_fp &operator--() {
+                            data = data - data_type(1, modulus);
+                            return *this;
+                        }
+
+                        constexpr element_fp operator--(int) {
+                            element_fp temp(*this);
+                            --*this;
+                            return temp;
+                        }
+
+                        constexpr element_fp doubled() const {
                             return element_fp(data + data);
                         }
 
-                        element_fp sqrt() const {
+                        // TODO: maybe incorrect result here
+                        constexpr element_fp sqrt() const {
                             return element_fp(ressol(data));
                         }
 
-                        element_fp inversed() const {
+                        constexpr element_fp inversed() const {
                             return element_fp(inverse_extended_euclidean_algorithm(data));
                         }
 
-                        element_fp _2z_add_3x() {
+                        // TODO: complete method
+                        constexpr element_fp _2z_add_3x() {
                         }
 
-                        element_fp squared() const {
+                        constexpr element_fp squared() const {
                             return element_fp(data * data);    // maybe can be done more effective
                         }
 
-                        bool is_square() const {
+                        // TODO: maybe error here
+                        constexpr bool is_square() const {
                             return (this->sqrt() != -1);    // maybe can be done more effective
                         }
 
-                        template<typename PowerType>
-                        element_fp pow(const PowerType &pwr) const {
-                            return element_fp(power(*this, modulus_type(pwr)));
+                        template<typename PowerType,
+                                 typename = typename std::enable_if<boost::is_integral<PowerType>::value>::type>
+                        constexpr element_fp pow(const PowerType pwr) const {
+                            return element_fp(multiprecision::powm(data, multiprecision::uint128_t(pwr)));
+                        }
+
+                        template<typename Backend, multiprecision::expression_template_option ExpressionTemplates>
+                        constexpr element_fp
+                            pow(const multiprecision::number<Backend, ExpressionTemplates> &pwr) const {
+                            return element_fp(multiprecision::powm(data, pwr));
                         }
                     };
 

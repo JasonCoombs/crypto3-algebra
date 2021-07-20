@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -27,36 +27,37 @@
 #ifndef CRYPTO3_ALGEBRA_CURVES_EDWARDS_G2_HPP
 #define CRYPTO3_ALGEBRA_CURVES_EDWARDS_G2_HPP
 
-#include <nil/crypto3/algebra/curves/detail/edwards/basic_policy.hpp>
-#include <nil/crypto3/algebra/curves/detail/edwards/element_g2.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/edwards183/basic_policy.hpp>
+
+#include <nil/crypto3/algebra/curves/detail/edwards/edwards183/element_g2.hpp>
 
 namespace nil {
     namespace crypto3 {
         namespace algebra {
             namespace curves {
 
-                template<std::size_t ModulusBits>
+                template<std::size_t Version>
                 struct edwards;
 
                 namespace detail {
                     /** @brief A struct representing a group G2 of Edwards curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct edwards_g2 {
 
-                        using policy_type = edwards_basic_policy<ModulusBits>;
+                        using policy_type = edwards_basic_policy<Version>;
 
-                        using curve_type = edwards<ModulusBits>;
+                        using curve_type = edwards<Version>;
 
                         using underlying_field_type = typename policy_type::g2_field_type;
 
-                        constexpr static const std::size_t value_bits = underlying_field_type::value_bits + 1; ///< size of the base field in bits  
+                        constexpr static const std::size_t value_bits =
+                            underlying_field_type::value_bits + 1;    ///< size of the base field in bits
 
-                        using value_type = element_edwards_g2<ModulusBits>;
+                        using value_type = element_edwards_g2<Version>;
                     };
-
                 }    // namespace detail
             }        // namespace curves
         }            // namespace algebra

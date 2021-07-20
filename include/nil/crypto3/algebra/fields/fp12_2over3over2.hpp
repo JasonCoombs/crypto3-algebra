@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -45,7 +45,7 @@ namespace nil {
 
                 /*!
                  * @brief
-                 * @tparam ModulusBits
+                 * @tparam Version
                  */
                 template<typename BaseField>
                 struct fp12_2over3over2 {
@@ -64,8 +64,6 @@ namespace nil {
 
                     constexpr static const modulus_type modulus = policy_type::modulus;
 
-                    constexpr static const modulus_type mul_generator = policy_type::mul_generator;
-
                     typedef typename detail::element_fp12_2over3over2<extension_policy> value_type;
 
                     constexpr static const std::size_t arity = 12;
@@ -74,10 +72,6 @@ namespace nil {
 
                 template<typename BaseField>
                 constexpr typename fp12_2over3over2<BaseField>::modulus_type const fp12_2over3over2<BaseField>::modulus;
-
-                template<typename BaseField>
-                constexpr
-                    typename fp12_2over3over2<BaseField>::modulus_type const fp12_2over3over2<BaseField>::mul_generator;
 
                 template<typename BaseField>
                 constexpr typename std::size_t const fp12_2over3over2<BaseField>::arity;

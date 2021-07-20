@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Pavel Kharitonov <ipavrus@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Pavel Kharitonov <ipavrus@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -29,10 +29,8 @@
 
 #include <vector>
 
-#include <boost/multiprecision/number.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
-
-#include <nil/crypto3/detail/type_traits.hpp>
+#include <nil/crypto3/multiprecision/number.hpp>
+#include <nil/crypto3/multiprecision/cpp_int.hpp>
 
 #include <nil/crypto3/algebra/wnaf.hpp>
 
@@ -44,6 +42,7 @@ namespace nil {
                     template<typename NumberType>
                     class ordered_exponent {
                         using number_type = NumberType;
+
                     public:
                         std::size_t idx;
                         number_type r;
@@ -52,7 +51,7 @@ namespace nil {
                         ordered_exponent(const std::size_t idx, const number_type &r) : idx(idx), r(r) {};
 
                         bool operator<(const ordered_exponent &other) const {
-                                return (this->r < other.r);
+                            return (this->r < other.r);
                         }
                     };
                 }    // namespace detail
@@ -63,26 +62,27 @@ namespace nil {
                  * multiexp_method_naive uses opt_window_wnaf_exp for exponentiation,
                  * while multiexp_method_plain uses operator *.
                  */
-                template<typename BaseType, typename FieldType>
-                struct multiexp_method_naive_plain{
-                    using base_value_type = typename BaseType::value_type;
-                    using field_value_type = typename FieldType::value_type;
-                public:
-                    static inline base_value_type process (typename std::vector<base_value_type>::const_iterator vec_start,
-                                                         typename std::vector<base_value_type>::const_iterator vec_end,
-                                                         typename std::vector<field_value_type>::const_iterator scalar_start,
-                                                         typename std::vector<field_value_type>::const_iterator scalar_end) {
+                struct multiexp_method_naive_plain {
+                    template<typename InputBaseIterator, typename InputFieldIterator>
+                    static inline typename std::iterator_traits<InputBaseIterator>::value_type
+                        process(InputBaseIterator vec_start,
+                                InputBaseIterator vec_end,
+                                InputFieldIterator scalar_start,
+                                InputFieldIterator scalar_end) {
 
-                        base_value_type result(base_value_type::zero());
+                        typedef typename std::iterator_traits<InputBaseIterator>::value_type base_value_type;
+                        typedef typename std::iterator_traits<InputFieldIterator>::value_type field_value_type;
 
-                        typename std::vector<base_value_type>::const_iterator vec_it;
-                        typename std::vector<field_value_type>::const_iterator scalar_it;
+                        base_value_type result = base_value_type::zero();
+
+                        InputBaseIterator vec_it;
+                        InputFieldIterator scalar_it;
 
                         for (vec_it = vec_start, scalar_it = scalar_start; vec_it != vec_end; ++vec_it, ++scalar_it) {
                             result = result + (*scalar_it) * (*vec_it);
                         }
 
-                        assert(scalar_it == scalar_end);
+                        BOOST_ASSERT(scalar_it == scalar_end);
 
                         return result;
                     }
@@ -95,40 +95,42 @@ namespace nil {
                  * (https://eprint.iacr.org/2012/549.pdf)
                  * When compiled with USE_MIXED_ADDITION, assumes input is in special form.
                  * Requires that base_value_type implements .dbl() (and, if USE_MIXED_ADDITION is defined,
-                 * .to_special(), .mixed_add(), and batch_to_special()).
+                 * .to_projective(), .mixed_add(), and batch_to_projective()).
                  */
-                template<typename BaseType, typename FieldType>
-                class multiexp_method_BDLO12{
-                    using base_value_type = typename BaseType::value_type;
-                    using field_value_type = typename FieldType::value_type;
-                public:
-                    static inline base_value_type 
-                        process(typename std::vector<base_value_type>::const_iterator bases,
-                                typename std::vector<base_value_type>::const_iterator bases_end,
-                                typename std::vector<field_value_type>::const_iterator exponents,
-                                typename std::vector<field_value_type>::const_iterator exponents_end) {
+                struct multiexp_method_BDLO12 {
+                    template<typename InputBaseIterator, typename InputFieldIterator>
+                    static inline typename std::iterator_traits<InputBaseIterator>::value_type
+                        process(InputBaseIterator bases,
+                                InputBaseIterator bases_end,
+                                InputFieldIterator exponents,
+                                InputFieldIterator exponents_end) {
 
-                        // temporary added until fixed-precision modular adaptor is ready:
-                        typedef boost::multiprecision::number<boost::multiprecision::backends::cpp_int_backend<>> non_fixed_precision_number_type;
+                        typedef typename std::iterator_traits<InputBaseIterator>::value_type base_value_type;
+                        typedef typename std::iterator_traits<InputFieldIterator>::value_type field_value_type;
 
                         std::size_t length = std::distance(bases, bases_end);
+                        std::size_t scalars_length = std::distance(exponents, exponents_end);
+
+                        assert (length == scalars_length);
 
                         // empirically, this seems to be a decent estimate of the optimal value of c
                         std::size_t log2_length = std::log2(length);
                         std::size_t c = log2_length - (log2_length / 3 - 2);
 
-                        std::vector<non_fixed_precision_number_type> bn_exponents(length);
                         std::size_t num_bits = 0;
 
                         for (std::size_t i = 0; i < length; i++) {
-                            bn_exponents[i] = non_fixed_precision_number_type(exponents[i].data);
-                            std::size_t bn_exponents_i_msb = boost::multiprecision::msb(bn_exponents[i]) + 1;
+                            // Should be
+                            // std::size_t bn_exponents_i_msb = multiprecision::msb(exponents[i].data) + 1;
+                            // But multiprecision::msb doesn't work for zero value
+                            std::size_t bn_exponents_i_msb = 1;
+                            if (exponents[i].data != 0){
+                                bn_exponents_i_msb = multiprecision::msb(exponents[i].data) + 1;
+                            }
                             num_bits = std::max(num_bits, bn_exponents_i_msb);
                         }
 
                         std::size_t num_groups = (num_bits + c - 1) / c;
-
-
 
                         base_value_type result;
                         bool result_nonzero = false;
@@ -146,7 +148,7 @@ namespace nil {
                             for (std::size_t i = 0; i < length; i++) {
                                 std::size_t id = 0;
                                 for (std::size_t j = 0; j < c; j++) {
-                                    if (boost::multiprecision::bit_test(bn_exponents[i], k * c + j)) {
+                                    if (multiprecision::bit_test(exponents[i].data, k * c + j)) {
                                         id |= 1 << j;
                                     }
                                 }
@@ -210,19 +212,20 @@ namespace nil {
                  * [1] = Bos and Coster, "Addition chain heuristics", CRYPTO '89
                  * [2] = Bernstein, Duif, Lange, Schwabe, and Yang, "High-speed high-security signatures", CHES '11
                  */
-                template<typename BaseType, typename FieldType>
-                class multiexp_method_bos_coster{
-                    using base_value_type = typename BaseType::value_type;
-                    using field_value_type = typename FieldType::value_type;
-                public:
-                    static inline base_value_type 
-                        process(typename std::vector<base_value_type>::const_iterator vec_start,
-                                typename std::vector<base_value_type>::const_iterator vec_end,
-                                typename std::vector<field_value_type>::const_iterator scalar_start,
-                                typename std::vector<field_value_type>::const_iterator scalar_end) {
+                struct multiexp_method_bos_coster {
+                    template<typename InputBaseIterator, typename InputFieldIterator>
+                    static inline typename std::iterator_traits<InputBaseIterator>::value_type
+                        process(InputBaseIterator vec_start,
+                                InputBaseIterator vec_end,
+                                InputFieldIterator scalar_start,
+                                InputFieldIterator scalar_end) {
+
+                        typedef typename std::iterator_traits<InputBaseIterator>::value_type base_value_type;
+                        typedef typename std::iterator_traits<InputFieldIterator>::value_type field_value_type;
 
                         // temporary added until fixed-precision modular adaptor is ready:
-                        typedef boost::multiprecision::number<boost::multiprecision::backends::cpp_int_backend<>> non_fixed_precision_number_type;
+                        typedef multiprecision::number<multiprecision::backends::cpp_int_backend<>>
+                            non_fixed_precision_number_type;
 
                         if (vec_start == vec_end) {
                             return base_value_type::zero();
@@ -236,25 +239,29 @@ namespace nil {
                         const std::size_t vec_len = scalar_end - scalar_start;
                         const std::size_t odd_vec_len = (vec_len % 2 == 1 ? vec_len : vec_len + 1);
                         opt_q.reserve(odd_vec_len);
-                        
+
                         std::vector<base_value_type> g;
                         g.reserve(odd_vec_len);
 
-                        typename std::vector<base_value_type>::const_iterator vec_it;
-                        typename std::vector<field_value_type>::const_iterator scalar_it;
+                        InputBaseIterator vec_it;
+                        InputFieldIterator scalar_it;
                         std::size_t i;
                         for (i = 0, vec_it = vec_start, scalar_it = scalar_start; vec_it != vec_end;
                              ++vec_it, ++scalar_it, ++i) {
                             g.emplace_back(*vec_it);
 
-                            opt_q.emplace_back(detail::ordered_exponent<non_fixed_precision_number_type>(i, non_fixed_precision_number_type(scalar_it->data)));
+                            opt_q.emplace_back(detail::ordered_exponent<non_fixed_precision_number_type>(
+                                i, non_fixed_precision_number_type(scalar_it->data)));
                         }
+
                         std::make_heap(opt_q.begin(), opt_q.end());
+
                         assert(scalar_it == scalar_end);
 
                         if (vec_len != odd_vec_len) {
                             g.emplace_back(base_value_type::zero());
-                            opt_q.emplace_back(detail::ordered_exponent<non_fixed_precision_number_type>(odd_vec_len - 1, 0ul));
+                            opt_q.emplace_back(
+                                detail::ordered_exponent<non_fixed_precision_number_type>(odd_vec_len - 1, 0ul));
                         }
                         assert(g.size() % 2 == 1);
                         assert(opt_q.size() == g.size());
@@ -263,9 +270,10 @@ namespace nil {
 
                         while (true) {
                             detail::ordered_exponent<non_fixed_precision_number_type> &a = opt_q[0];
-                            detail::ordered_exponent<non_fixed_precision_number_type> &b = (opt_q[1] < opt_q[2] ? opt_q[2] : opt_q[1]);
+                            detail::ordered_exponent<non_fixed_precision_number_type> &b =
+                                (opt_q[1] < opt_q[2] ? opt_q[2] : opt_q[1]);
 
-                            const std::size_t abits = boost::multiprecision::msb(a.r) + 1;
+                            const std::size_t abits = multiprecision::msb(a.r) + 1;
 
                             if (b.r.is_zero()) {
                                 // opt_result = opt_result + (a.r * g[a.idx]);
@@ -273,7 +281,7 @@ namespace nil {
                                 break;
                             }
 
-                            const std::size_t bbits = boost::multiprecision::msb(b.r) + 1;
+                            const std::size_t bbits = multiprecision::msb(b.r) + 1;
                             const std::size_t limit = (abits - bbits >= 20 ? 20 : abits - bbits);
 
                             if (bbits < 1ul << limit) {

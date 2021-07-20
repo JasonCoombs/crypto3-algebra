@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -31,7 +31,6 @@
 #include <nil/crypto3/algebra/curves/detail/alt_bn128/g1.hpp>
 #include <nil/crypto3/algebra/curves/detail/scalar_mul.hpp>
 
-#include <nil/crypto3/detail/type_traits.hpp>
 #include <nil/crypto3/detail/literals.hpp>
 
 namespace nil {
@@ -41,17 +40,17 @@ namespace nil {
                 namespace detail {
 
                     /** @brief A struct representing a group G2 of Barreto-Naehrig curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct alt_bn128_g2;
 
                     /** @brief A struct representing an element from the group G2 of Barreto-Naehrig curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     struct element_alt_bn128_g2 { };
 
                     /** @brief A struct representing an elememnt from the group G2 of Barreto-Naehrig curve.
@@ -64,38 +63,30 @@ namespace nil {
                         using group_type = alt_bn128_g2<254>;
 
                         using policy_type = alt_bn128_basic_policy<254>;
-                        constexpr static const std::size_t g1_field_bits = policy_type::base_field_bits; ///< size of the base field in bits 
-                        typedef typename policy_type::base_field_type::value_type g1_field_type_value;
 
-                        constexpr static const std::size_t g2_field_bits = policy_type::base_field_bits; ///< size of the base field in bits 
-                        typedef
-                            typename fields::fp2<typename policy_type::base_field_type>::value_type g2_field_type_value;
+                        typedef typename policy_type::g1_field_type::value_type g1_field_type_value;
+                        typedef typename policy_type::g2_field_type::value_type g2_field_type_value;
 
                         using underlying_field_value_type = g2_field_type_value;
 
-                        underlying_field_value_type X; 
-                        underlying_field_value_type Y; 
-                        underlying_field_value_type Z; 
+                        underlying_field_value_type X;
+                        underlying_field_value_type Y;
+                        underlying_field_value_type Z;
 
                         /*************************  Constructors and zero/one  ***********************************/
 
-                         /** @brief 
+                        /** @brief
                          *    @return the point at infinity by default
                          *
                          */
-                        element_alt_bn128_g2() :
-                            element_alt_bn128_g2(underlying_field_value_type::zero(),
-                                                 underlying_field_value_type::one(),
-                                                 underlying_field_value_type::zero()) {};
-                        // must be
-                        // element_alt_bn128_g2() : element_alt_bn128_g2(zero_fill[0], zero_fill[1], zero_fill[2]) {};
-                        // when constexpr fields will be finished
+                        constexpr element_alt_bn128_g2() : element_alt_bn128_g2(policy_type::g2_zero_fill[0], 
+                            policy_type::g2_zero_fill[1], policy_type::g2_zero_fill[2]) {};
 
-                        /** @brief 
+                        /** @brief
                          *    @return the selected point $(X:Y:Z)$
                          *
                          */
-                        element_alt_bn128_g2(underlying_field_value_type X, underlying_field_value_type Y,
+                        constexpr element_alt_bn128_g2(underlying_field_value_type X, underlying_field_value_type Y,
                                              underlying_field_value_type Z) {
                             this->X = X;
                             this->Y = Y;
@@ -105,28 +96,18 @@ namespace nil {
                         /** @brief Get the point at infinity
                          *
                          */
-                        static element_alt_bn128_g2 zero() {
+                        constexpr static element_alt_bn128_g2 zero() {
                             return element_alt_bn128_g2();
                         }
 
                         /** @brief Get the generator of group G2
                          *
                          */
-                        static element_alt_bn128_g2 one() {
-                            return element_alt_bn128_g2(
-                                underlying_field_value_type(
-                                    0x1800DEEF121F1E76426A00665E5C4479674322D4F75EDADD46DEBD5CD992F6ED_cppui254,
-                                    0x198E9393920D483A7260BFB731FB5D25F1AA493335A9E71297E485B7AEF312C2_cppui254),
-                                underlying_field_value_type(
-                                    0x12C85EA5DB8C6DEB4AAB71808DCB408FE3D1E7690C43D37B4CE6CC0166FA7DAA_cppui254,
-                                    0x90689D0585FF075EC9E99AD690C3395BC4B313370B38EF355ACDADCD122975B_cppui254),
-                                underlying_field_value_type::one());
-                            // must be
-                            // return element_alt_bn128_g2(one_fill[0], one_fill[1], one_fill[2]);
-                            // when constexpr fields will be finished
+                        constexpr static element_alt_bn128_g2 one() {
+                            return element_alt_bn128_g2(policy_type::g2_one_fill[0], policy_type::g2_one_fill[1], policy_type::g2_one_fill[2]);
                         }
 
-                        bool operator==(const element_alt_bn128_g2 &other) const {
+                        constexpr bool operator==(const element_alt_bn128_g2 &other) const {
                             if (this->is_zero()) {
                                 return other.is_zero();
                             }
@@ -161,29 +142,29 @@ namespace nil {
                             return true;
                         }
 
-                        bool operator!=(const element_alt_bn128_g2 &other) const {
+                        constexpr bool operator!=(const element_alt_bn128_g2 &other) const {
                             return !(operator==(other));
                         }
 
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G2 is the point at infinity
                          */
-                        bool is_zero() const {
+                        constexpr bool is_zero() const {
                             return (this->Z.is_zero());
                         }
 
                         /** @brief
-                         * 
+                         *
                          * @return true if element from group G2 in affine coordinates
                          */
-                        bool is_special() const {
+                        constexpr bool is_special() const {
                             return (this->is_zero() || this->Z == underlying_field_value_type::one());
                         }
 
                         /*************************  Arithmetic operations  ***********************************/
 
-                        element_alt_bn128_g2 operator=(const element_alt_bn128_g2 &other) {
+                        constexpr element_alt_bn128_g2 operator=(const element_alt_bn128_g2 &other) {
                             // handle special cases having to do with O
                             this->X = other.X;
                             this->Y = other.Y;
@@ -192,7 +173,7 @@ namespace nil {
                             return *this;
                         }
 
-                        element_alt_bn128_g2 operator+(const element_alt_bn128_g2 &other) const {
+                        constexpr element_alt_bn128_g2 operator+(const element_alt_bn128_g2 &other) const {
                             // handle special cases having to do with O
                             if (this->is_zero()) {
                                 return other;
@@ -209,19 +190,19 @@ namespace nil {
                             return this->add(other);
                         }
 
-                        element_alt_bn128_g2 operator-() const {
+                        constexpr element_alt_bn128_g2 operator-() const {
                             return element_alt_bn128_g2(this->X, -(this->Y), this->Z);
                         }
 
-                        element_alt_bn128_g2 operator-(const element_alt_bn128_g2 &other) const {
+                        constexpr element_alt_bn128_g2 operator-(const element_alt_bn128_g2 &other) const {
                             return (*this) + (-other);
                         }
 
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return doubled element from group G2
                          */
-                        element_alt_bn128_g2 doubled() const {
+                        constexpr element_alt_bn128_g2 doubled() const {
                             // handle point at infinity
                             if (this->is_zero()) {
                                 return (*this);
@@ -246,12 +227,12 @@ namespace nil {
                             return element_alt_bn128_g2(X3, Y3, Z3);
                         }
 
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * “Mixed addition” refers to the case Z2 known to be 1.
                          * @return addition of two elements from group G2
                          */
-                        element_alt_bn128_g2 mixed_add(const element_alt_bn128_g2 &other) const {
+                        constexpr element_alt_bn128_g2 mixed_add(const element_alt_bn128_g2 &other) const {
 
                             // handle special cases having to do with O
                             if (this->is_zero()) {
@@ -311,7 +292,7 @@ namespace nil {
                         }
 
                     private:
-                        element_alt_bn128_g2 add(const element_alt_bn128_g2 &other) const {
+                        constexpr element_alt_bn128_g2 add(const element_alt_bn128_g2 &other) const {
 
                             // NOTE: does not handle O and pts of order 2,4
                             // http://www.hyperelliptic.org/EFD/g1p/auto-shortw-projective.html#addition-add-1998-cmo-2
@@ -349,11 +330,11 @@ namespace nil {
                     public:
                         /*************************  Reducing operations  ***********************************/
 
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from group G2 in affine coordinates
                          */
-                        element_alt_bn128_g2 to_affine_coordinates() {
+                        constexpr element_alt_bn128_g2 to_affine() {
                             underlying_field_value_type p_out[3];
 
                             if (this->is_zero()) {
@@ -372,45 +353,31 @@ namespace nil {
                             return element_alt_bn128_g2(p_out[0], p_out[1], p_out[2]);
                         }
 
-                        /** @brief 
-                         * 
+                        /** @brief
+                         *
                          * @return return the corresponding element from group G2 in affine coordinates
                          */
-                        element_alt_bn128_g2 to_special() {
-                            return this->to_affine_coordinates();
+                        constexpr element_alt_bn128_g2 to_projective() {
+                            return this->to_affine();
                         }
 
                     private:
-                        /*constexpr static */ const g1_field_type_value a = g1_field_type_value(policy_type::a);
-                        /*constexpr static */ const g1_field_type_value b = g1_field_type_value(policy_type::b);
+                        constexpr static const g1_field_type_value a = g1_field_type_value(policy_type::a);
+                        constexpr static const g1_field_type_value b = g1_field_type_value(policy_type::b);
+                    public:
+                        constexpr static const g2_field_type_value twist = g2_field_type_value(0x09, 0x01);
 
-                        /*constexpr static */ const g2_field_type_value twist = g2_field_type_value(0x09, 0x01);
+                        constexpr static const g2_field_type_value twist_coeff_b = b * twist.inversed();
 
-                        /*constexpr static */ const g2_field_type_value twist_coeff_b = b * twist.inversed();
-
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_b_c0 = b * twist.non_residue;
-                        /*constexpr static */ const g1_field_type_value twist_mul_by_b_c1 = b * twist.non_residue;
-                        /*constexpr static */ const g2_field_type_value twist_mul_by_q_X = g2_field_type_value(
-                            {0x2FB347984F7911F74C0BEC3CF559B143B78CC310C2C3330C99E39557176F553D_cppui254,
-                             0x16C9E55061EBAE204BA4CC8BD75A079432AE2A1D0B7C9DCE1665D51C640FCBA2_cppui253});
-                        /*constexpr static */ const g2_field_type_value twist_mul_by_q_Y = g2_field_type_value(
-                            {0x63CF305489AF5DCDC5EC698B6E2F9B9DBAAE0EDA9C95998DC54014671A0135A_cppui251,
-                             0x7C03CBCAC41049A0704B5A7EC796F2B21807DC98FA25BD282D37F632623B0E3_cppui251});
-
-                        /*constexpr static const underlying_field_value_type zero_fill = {
-                            underlying_field_value_type::zero(), underlying_field_value_type::one(),
-                            underlying_field_value_type::zero()};
-
-                        constexpr static const underlying_field_value_type one_fill = {
-                            underlying_field_value_type(
-                                0x1800DEEF121F1E76426A00665E5C4479674322D4F75EDADD46DEBD5CD992F6ED_cppui254,
-                                0x198E9393920D483A7260BFB731FB5D25F1AA493335A9E71297E485B7AEF312C2_cppui254),
-                            underlying_field_value_type(
-                                0x12C85EA5DB8C6DEB4AAB71808DCB408FE3D1E7690C43D37B4CE6CC0166FA7DAA_cppui254,
-                                0x90689D0585FF075EC9E99AD690C3395BC4B313370B38EF355ACDADCD122975B_cppui254),
-                            underlying_field_value_type::one()};*/
+                        constexpr static const g1_field_type_value twist_mul_by_b_c0 = b * g2_field_type_value::non_residue;
+                        constexpr static const g1_field_type_value twist_mul_by_b_c1 = b * g2_field_type_value::non_residue;
+                        constexpr static const g2_field_type_value twist_mul_by_q_X = g2_field_type_value(
+                            0x2FB347984F7911F74C0BEC3CF559B143B78CC310C2C3330C99E39557176F553D_cppui254,
+                            0x16C9E55061EBAE204BA4CC8BD75A079432AE2A1D0B7C9DCE1665D51C640FCBA2_cppui253);
+                        constexpr static const g2_field_type_value twist_mul_by_q_Y = g2_field_type_value(
+                            0x63CF305489AF5DCDC5EC698B6E2F9B9DBAAE0EDA9C95998DC54014671A0135A_cppui251,
+                            0x7C03CBCAC41049A0704B5A7EC796F2B21807DC98FA25BD282D37F632623B0E3_cppui251);
                     };
-
                 }    // namespace detail
             }        // namespace curves
         }            // namespace algebra

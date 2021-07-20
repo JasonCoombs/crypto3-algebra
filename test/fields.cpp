@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -24,16 +24,11 @@
 // SOFTWARE.
 //---------------------------------------------------------------------------//
 
-#define BOOST_TEST_MODULE fields_algebra_test
+#define BOOST_TEST_MODULE algebra_fields_test
 
 #include <iostream>
 #include <cstdint>
 #include <string>
-
-// #include <boost/multiprecision/cpp_modular.hpp>
-// #include <boost/multiprecision/number.hpp>
-// #include <boost/multiprecision/cpp_int.hpp>
-// #include <boost/multiprecision/modular/modular_adaptor.hpp>
 
 #include <boost/test/unit_test.hpp>
 #include <boost/test/data/test_case.hpp>
@@ -43,11 +38,20 @@
 #include <boost/property_tree/json_parser.hpp>
 
 #include <nil/crypto3/algebra/fields/fp2.hpp>
+#include <nil/crypto3/algebra/fields/fp3.hpp>
+#include <nil/crypto3/algebra/fields/fp4.hpp>
+#include <nil/crypto3/algebra/fields/fp6_2over3.hpp>
+#include <nil/crypto3/algebra/fields/fp6_3over2.hpp>
+#include <nil/crypto3/algebra/fields/fp12_2over3over2.hpp>
 
 // #include <nil/crypto3/algebra/fields/bn128/base_field.hpp>
 // #include <nil/crypto3/algebra/fields/bn128/scalar_field.hpp>
 #include <nil/crypto3/algebra/fields/bls12/base_field.hpp>
 #include <nil/crypto3/algebra/fields/bls12/scalar_field.hpp>
+#include <nil/crypto3/algebra/fields/mnt4/base_field.hpp>
+#include <nil/crypto3/algebra/fields/mnt4/scalar_field.hpp>
+#include <nil/crypto3/algebra/fields/mnt6/base_field.hpp>
+#include <nil/crypto3/algebra/fields/mnt6/scalar_field.hpp>
 // #include <nil/crypto3/algebra/fields/dsa_botan.hpp>
 // #include <nil/crypto3/algebra/fields/dsa_jce.hpp>
 // #include <nil/crypto3/algebra/fields/ed25519_fe.hpp>
@@ -68,7 +72,57 @@ void print_field_element(std::ostream &os, const typename fields::detail::elemen
 
 template<typename FieldParams>
 void print_field_element(std::ostream &os, const typename fields::detail::element_fp2<FieldParams> &e) {
-    os << e.data[0].data << " " << e.data[1].data << std::endl;
+    os << "[" << e.data[0].data << "," << e.data[1].data << "]" << std::endl;
+}
+
+template<typename FieldParams>
+void print_field_element(std::ostream &os, const typename fields::detail::element_fp3<FieldParams> &e) {
+    os << "[";
+    print_field_element(os, e.data[0]);
+    os << ", ";
+    print_field_element(os, e.data[1]);
+    os << ", ";
+    print_field_element(os, e.data[2]);
+    os << "]";
+}
+
+template<typename FieldParams>
+void print_field_element(std::ostream &os, const typename fields::detail::element_fp4<FieldParams> &e) {
+    os << "[";
+    print_field_element(os, e.data[0]);
+    os << ", ";
+    print_field_element(os, e.data[1]);
+    os << "]";
+}
+
+template<typename FieldParams>
+void print_field_element(std::ostream &os, const typename fields::detail::element_fp6_3over2<FieldParams> &e) {
+    os << "[";
+    print_field_element(os, e.data[0]);
+    os << ", ";
+    print_field_element(os, e.data[1]);
+    os << ", ";
+    print_field_element(os, e.data[2]);
+    os << "]";
+}
+
+template<typename FieldParams>
+void print_field_element(std::ostream &os, const typename fields::detail::element_fp6_2over3<FieldParams> &e) {
+    os << "[";
+    print_field_element(os, e.data[0]);
+    os << ", ";
+    print_field_element(os, e.data[1]);
+    os << "]";
+}
+
+template<typename FieldParams>
+void print_field_element(std::ostream &os, const fields::detail::element_fp12_2over3over2<FieldParams> &e) {
+    os << "[[[" << e.data[0].data[0].data[0].data << "," << e.data[0].data[0].data[1].data << "],["
+       << e.data[0].data[1].data[0].data << "," << e.data[0].data[1].data[1].data << "],["
+       << e.data[0].data[2].data[0].data << "," << e.data[0].data[2].data[1].data << "]],"
+       << "[[" << e.data[1].data[0].data[0].data << "," << e.data[1].data[0].data[1].data << "],["
+       << e.data[1].data[1].data[0].data << "," << e.data[1].data[1].data[1].data << "],["
+       << e.data[1].data[2].data[0].data << "," << e.data[1].data[2].data[1].data << "]]]";
 }
 
 namespace boost {
@@ -88,6 +142,43 @@ namespace boost {
                 }
             };
 
+            template<typename FieldParams>
+            struct print_log_value<typename fields::detail::element_fp3<FieldParams>> {
+                void operator()(std::ostream &os, typename fields::detail::element_fp3<FieldParams> const &e) {
+                    print_field_element(os, e);
+                }
+            };
+
+            template<typename FieldParams>
+            struct print_log_value<typename fields::detail::element_fp4<FieldParams>> {
+                void operator()(std::ostream &os, typename fields::detail::element_fp4<FieldParams> const &e) {
+                    print_field_element(os, e);
+                    std::cout << std::endl;
+                }
+            };
+
+            template<typename FieldParams>
+            struct print_log_value<typename fields::detail::element_fp6_3over2<FieldParams>> {
+                void operator()(std::ostream &os, typename fields::detail::element_fp6_3over2<FieldParams> const &e) {
+                    print_field_element(os, e);
+                }
+            };
+
+            template<typename FieldParams>
+            struct print_log_value<typename fields::detail::element_fp6_2over3<FieldParams>> {
+                void operator()(std::ostream &os, typename fields::detail::element_fp6_2over3<FieldParams> const &e) {
+                    print_field_element(os, e);
+                }
+            };
+
+            template<typename FieldParams>
+            struct print_log_value<typename fields::detail::element_fp12_2over3over2<FieldParams>> {
+                void operator()(std::ostream &os,
+                                typename fields::detail::element_fp12_2over3over2<FieldParams> const &e) {
+                    print_field_element(os, e);
+                }
+            };
+
             template<template<typename, typename> class P, typename K, typename V>
             struct print_log_value<P<K, V>> {
                 void operator()(std::ostream &, P<K, V> const &) {
@@ -97,8 +188,8 @@ namespace boost {
     }        // namespace test_tools
 }    // namespace boost
 
-typedef int64_t constant_type;
-enum field_operation_test_constants : std::size_t { C1 };
+typedef std::size_t constant_type;
+enum field_operation_test_constants : std::size_t { C1, constants_set_size };
 
 enum field_operation_test_elements : std::size_t {
     e1,
@@ -110,7 +201,10 @@ enum field_operation_test_elements : std::size_t {
     e2_inv,
     e1_pow_C1,
     e2_pow_2,
-    e2_pow_2_sqrt
+    e2_pow_2_sqrt,
+    minus_e1,
+
+    elements_set_size
 };
 
 // if target == check-algebra just data/fields.json
@@ -123,6 +217,135 @@ boost::property_tree::ptree string_data(std::string test_name) {
     return string_data.get_child(test_name);
 }
 
+template<typename ElementType>
+struct field_element_init;
+
+template<typename FieldParams>
+struct field_element_init<fields::detail::element_fp<FieldParams>> {
+    using element_type = fields::detail::element_fp<FieldParams>;
+
+    template<typename ElementData>
+    static inline element_type process(const ElementData &element_data) {
+        return element_type(typename element_type::modulus_type(element_data.second.data()));
+    }
+};
+
+template<typename FieldParams>
+struct field_element_init<fields::detail::element_fp2<FieldParams>> {
+    using element_type = fields::detail::element_fp2<FieldParams>;
+
+    template<typename ElementData>
+    static inline element_type process(const ElementData &element_data) {
+        // element_fp
+        using underlying_type = typename element_type::underlying_type;
+
+        std::array<underlying_type, 2> element_values;
+        auto i = 0;
+        for (auto &element_value : element_data.second) {
+            element_values[i++] = field_element_init<underlying_type>::process(element_value);
+        }
+        return element_type(element_values[0], element_values[1]);
+    }
+};
+
+template<typename FieldParams>
+struct field_element_init<fields::detail::element_fp3<FieldParams>> {
+    using element_type = fields::detail::element_fp3<FieldParams>;
+
+    template<typename ElementData>
+    static inline element_type process(const ElementData &element_data) {
+        // element_fp
+        using underlying_type = typename element_type::underlying_type;
+
+        std::array<underlying_type, 3> element_values;
+        auto i = 0;
+        for (auto &element_value : element_data.second) {
+            element_values[i++] = field_element_init<underlying_type>::process(element_value);
+        }
+        return element_type(element_values[0], element_values[1], element_values[2]);
+    }
+};
+
+template<typename FieldParams>
+struct field_element_init<fields::detail::element_fp4<FieldParams>> {
+    using element_type = fields::detail::element_fp4<FieldParams>;
+
+    template<typename ElementData>
+    static inline element_type process(const ElementData &element_data) {
+        // element_fp2 over element_fp
+        using underlying_type = typename element_type::underlying_type;
+
+        std::array<underlying_type, 2> element_values;
+        auto i = 0;
+        for (auto &element_value : element_data.second) {
+            element_values[i++] = field_element_init<underlying_type>::process(element_value);
+        }
+        return element_type(element_values[0], element_values[1]);
+    }
+};
+
+template<typename FieldParams>
+struct field_element_init<fields::detail::element_fp6_2over3<FieldParams>> {
+    using element_type = fields::detail::element_fp6_2over3<FieldParams>;
+
+    template<typename ElementData>
+    static inline element_type process(const ElementData &element_data) {
+        // element_fp3 over element_fp
+        using underlying_type = typename element_type::underlying_type;
+
+        std::array<underlying_type, 2> element_values;
+        auto i = 0;
+        for (auto &element_value : element_data.second) {
+            element_values[i++] = field_element_init<underlying_type>::process(element_value);
+        }
+        return element_type(element_values[0], element_values[1]);
+    }
+};
+
+template<typename FieldParams>
+struct field_element_init<fields::detail::element_fp6_3over2<FieldParams>> {
+    using element_type = fields::detail::element_fp6_3over2<FieldParams>;
+
+    template<typename ElementData>
+    static inline element_type process(const ElementData &element_data) {
+        // element_fp2 over element_fp
+        using underlying_type = typename element_type::underlying_type;
+
+        std::array<underlying_type, 3> element_values;
+        auto i = 0;
+        for (auto &element_value : element_data.second) {
+            element_values[i++] = field_element_init<underlying_type>::process(element_value);
+        }
+        return element_type(element_values[0], element_values[1], element_values[2]);
+    }
+};
+
+template<typename FieldParams>
+struct field_element_init<fields::detail::element_fp12_2over3over2<FieldParams>> {
+    using element_type = fields::detail::element_fp12_2over3over2<FieldParams>;
+
+    template<typename ElementData>
+    static inline element_type process(const ElementData &element_data) {
+        // element_fp3 over element_fp2 over element_fp
+        using underlying_type_3over2 = typename element_type::underlying_type;
+        // element_fp2 over element_fp
+        using underlying_type = typename underlying_type_3over2::underlying_type;
+
+        std::array<underlying_type_3over2, 2> element_values;
+        std::array<underlying_type, 3> underlying_element_values;
+        auto i = 0;
+        for (auto &elem_3over2 : element_data.second) {
+            auto j = 0;
+            for (auto &elem_fp2 : elem_3over2.second) {
+                underlying_element_values[j++] = field_element_init<underlying_type>::process(elem_fp2);
+            }
+            element_values[i++] = underlying_type_3over2(
+                underlying_element_values[0], underlying_element_values[1], underlying_element_values[2]);
+        }
+        return element_type(element_values[0], element_values[1]);
+    }
+};
+
 template<typename element_type>
 void check_field_operations(const std::vector<element_type> &elements, const std::vector<constant_type> &constants) {
     BOOST_CHECK_EQUAL(elements[e1] + elements[e2], elements[e1_plus_e2]);
@@ -133,38 +356,53 @@ void check_field_operations(const std::vector<element_type> &elements, const std
     BOOST_CHECK_EQUAL(elements[e1].pow(constants[C1]), elements[e1_pow_C1]);
     BOOST_CHECK_EQUAL(elements[e2].squared(), elements[e2_pow_2]);
     BOOST_CHECK_EQUAL((elements[e2].squared()).sqrt(), elements[e2_pow_2_sqrt]);
+    BOOST_CHECK_EQUAL(-elements[e1], elements[minus_e1]);
 }
 
-template<typename FieldParams, typename TestSet>
-void field_test_init(std::vector<typename fields::detail::element_fp<FieldParams>> &elements,
-                     std::vector<constant_type> &constants,
-                     const TestSet &test_set) {
-    using element_type = typename fields::detail::element_fp<FieldParams>;
-
-    for (auto &element : test_set.second.get_child("elements_values")) {
-        elements.emplace_back(element_type(typename element_type::modulus_type(element.second.data())));
-    }
-
-    for (auto &constant : test_set.second.get_child("constants")) {
-        constants.emplace_back(std::stoll(constant.second.data()));
-    }
+template<typename element_type>
+void check_field_operations_wo_sqrt(const std::vector<element_type> &elements,
+                                    const std::vector<constant_type> &constants) {
+    BOOST_CHECK_EQUAL(elements[e1] + elements[e2], elements[e1_plus_e2]);
+    BOOST_CHECK_EQUAL(elements[e1] - elements[e2], elements[e1_minus_e2]);
+    BOOST_CHECK_EQUAL(elements[e1] * elements[e2], elements[e1_mul_e2]);
+    BOOST_CHECK_EQUAL(elements[e1].doubled(), elements[e1_dbl]);
+    BOOST_CHECK_EQUAL(elements[e2].inversed(), elements[e2_inv]);
+    BOOST_CHECK_EQUAL(elements[e1].pow(constants[C1]), elements[e1_pow_C1]);
+    BOOST_CHECK_EQUAL(elements[e2].squared(), elements[e2_pow_2]);
+    // BOOST_CHECK_EQUAL((elements[e2].squared()).sqrt(), elements[e2_pow_2_sqrt]);
+    BOOST_CHECK_EQUAL(-elements[e1], elements[minus_e1 - 1]);
 }
 
-template<typename FieldParams, typename TestSet>
-void field_test_init(std::vector<typename fields::detail::element_fp2<FieldParams>> &elements,
+template<typename FieldParams>
+void check_field_operations(const std::vector<fields::detail::element_fp4<FieldParams>> &elements,
+                            const std::vector<constant_type> &constants) {
+    check_field_operations_wo_sqrt(elements, constants);
+}
+
+template<typename FieldParams>
+void check_field_operations(const std::vector<fields::detail::element_fp6_3over2<FieldParams>> &elements,
+                            const std::vector<constant_type> &constants) {
+    check_field_operations_wo_sqrt(elements, constants);
+}
+
+template<typename FieldParams>
+void check_field_operations(const std::vector<fields::detail::element_fp6_2over3<FieldParams>> &elements,
+                            const std::vector<constant_type> &constants) {
+    check_field_operations_wo_sqrt(elements, constants);
+}
+
+template<typename FieldParams>
+void check_field_operations(const std::vector<fields::detail::element_fp12_2over3over2<FieldParams>> &elements,
+                            const std::vector<constant_type> &constants) {
+    check_field_operations_wo_sqrt(elements, constants);
+}
+
+template<typename ElementType, typename TestSet>
+void field_test_init(std::vector<ElementType> &elements,
                      std::vector<constant_type> &constants,
                      const TestSet &test_set) {
-    using element_type = typename fields::detail::element_fp2<FieldParams>;
-    typedef typename element_type::underlying_type::modulus_type modulus_type;
-
-    std::array<modulus_type, 2> element_values;
-
     for (auto &element : test_set.second.get_child("elements_values")) {
-        auto i = 0;
-        for (auto &element_value : element.second) {
-            element_values[i++] = modulus_type(element_value.second.data());
-        }
-        elements.emplace_back(element_type(element_values[0], element_values[1]));
+        elements.emplace_back(field_element_init<ElementType>::process(element));
     }
 
     for (auto &constant : test_set.second.get_child("constants")) {
@@ -221,6 +459,56 @@ BOOST_DATA_TEST_CASE(field_operation_test_bls12_381_fq, string_data("field_opera
 
 BOOST_DATA_TEST_CASE(field_operation_test_bls12_381_fq2, string_data("field_operation_test_bls12_381_fq2"), data_set) {
     using policy_type = fields::fp2<fields::bls12_fq<381>>;
+
+    field_operation_test<policy_type>(data_set);
+}
+
+BOOST_DATA_TEST_CASE(field_operation_test_bls12_381_fq6, string_data("field_operation_test_bls12_381_fq6"), data_set) {
+    using policy_type = fields::fp6_3over2<fields::bls12_fq<381>>;
+
+    field_operation_test<policy_type>(data_set);
+}
+
+BOOST_DATA_TEST_CASE(field_operation_test_bls12_381_fq12,
+                     string_data("field_operation_test_bls12_381_fq12"),
+                     data_set) {
+    using policy_type = fields::fp12_2over3over2<fields::bls12_fq<381>>;
+
+    field_operation_test<policy_type>(data_set);
+}
+
+BOOST_DATA_TEST_CASE(field_operation_test_mnt4_fq, string_data("field_operation_test_mnt4_fq"), data_set) {
+    using policy_type = fields::mnt4<298>;
+
+    field_operation_test<policy_type>(data_set);
+}
+
+BOOST_DATA_TEST_CASE(field_operation_test_mnt4_fq2, string_data("field_operation_test_mnt4_fq2"), data_set) {
+    using policy_type = fields::fp2<fields::mnt4<298>>;
+
+    field_operation_test<policy_type>(data_set);
+}
+
+BOOST_DATA_TEST_CASE(field_operation_test_mnt4_fq4, string_data("field_operation_test_mnt4_fq4"), data_set) {
+    using policy_type = fields::fp4<fields::mnt4<298>>;
+
+    field_operation_test<policy_type>(data_set);
+}
+
+BOOST_DATA_TEST_CASE(field_operation_test_mnt6_fq, string_data("field_operation_test_mnt6_fq"), data_set) {
+    using policy_type = fields::mnt6<298>;
+
+    field_operation_test<policy_type>(data_set);
+}
+
+BOOST_DATA_TEST_CASE(field_operation_test_mnt6_fq3, string_data("field_operation_test_mnt6_fq3"), data_set) {
+    using policy_type = fields::fp3<fields::mnt6<298>>;
+
+    field_operation_test<policy_type>(data_set);
+}
+
+BOOST_DATA_TEST_CASE(field_operation_test_mnt6_fq6, string_data("field_operation_test_mnt6_fq6"), data_set) {
+    using policy_type = fields::fp6_2over3<fields::mnt6<298>>;
 
     field_operation_test<policy_type>(data_set);
 }

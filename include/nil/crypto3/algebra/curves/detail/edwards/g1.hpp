@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -27,36 +27,81 @@
 #ifndef CRYPTO3_ALGEBRA_CURVES_EDWARDS_G1_HPP
 #define CRYPTO3_ALGEBRA_CURVES_EDWARDS_G1_HPP
 
-#include <nil/crypto3/algebra/curves/detail/edwards/basic_policy.hpp>
-#include <nil/crypto3/algebra/curves/detail/edwards/element_g1.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/edwards183/basic_policy.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/edwards183/element_g1.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/jubjub/basic_policy.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/babyjubjub/basic_policy.hpp>
+#include <nil/crypto3/algebra/curves/detail/edwards/babyjubjub/element_g1.hpp>
 
 namespace nil {
     namespace crypto3 {
         namespace algebra {
             namespace curves {
 
-                template<std::size_t ModulusBits>
+                template<std::size_t Version>
                 struct edwards;
+
+                struct jubjub;
+
+                struct babyjubjub;
 
                 namespace detail {
                     /** @brief A struct representing a group G1 of Edwards curve.
-                     *    @tparam ModulusBits size of the base field in bits 
+                     *    @tparam Version version of the curve
                      *
                      */
-                    template<std::size_t ModulusBits>
-                    struct edwards_g1 {
+                    template<std::size_t Version>
+                    struct edwards_g1;
 
-                        using policy_type = edwards_basic_policy<ModulusBits>;
+                    template<>
+                    struct edwards_g1<183> {
+                        constexpr static const std::size_t version = 183;
 
-                        using curve_type = edwards<ModulusBits>;
+                        using policy_type = edwards_basic_policy<version>;
+
+                        using curve_type = edwards<version>;
 
                         using underlying_field_type = typename policy_type::g1_field_type;
 
-                        constexpr static const std::size_t value_bits = underlying_field_type::value_bits + 1;  ///< size of the base field in bits  
+                        constexpr static const std::size_t value_bits =
+                            underlying_field_type::value_bits + 1;    ///< size of the base field in bits
 
-                        using value_type = element_edwards_g1<ModulusBits>;
+                        using value_type = element_edwards_g1<version>;
                     };
 
+                    // JubJub
+                    template<>
+                    struct edwards_g1<255> {
+                        constexpr static const std::size_t version = 255;
+
+                        using policy_type = edwards_basic_policy<version>;
+
+                        using curve_type = jubjub;
+
+                        using underlying_field_type = typename policy_type::g1_field_type;
+
+                        constexpr static const std::size_t value_bits =
+                            underlying_field_type::value_bits + 1;    ///< size of the base field in bits
+
+                        using value_type = element_twisted_edwards_g1<version>;
+                    };
+
+                    // BabyJubJub
+                    template<>
+                    struct edwards_g1<254> {
+                        constexpr static const std::size_t version = 254;
+
+                        using policy_type = edwards_basic_policy<version>;
+
+                        using curve_type = babyjubjub;
+
+                        using underlying_field_type = typename policy_type::g1_field_type;
+
+                        constexpr static const std::size_t value_bits =
+                            underlying_field_type::value_bits + 1;    ///< size of the base field in bits
+
+                        using value_type = element_twisted_edwards_g1<version>;
+                    };
                 }    // namespace detail
             }        // namespace curves
         }            // namespace algebra

@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -52,7 +52,7 @@ namespace nil {
                      typename U = std::invoke_result_t<F, T, typename Matrices::value_type...>,
                      std::size_t N = detail::all_same_value<std::size_t, Matrices::column_size...>::value,
                      std::size_t M = detail::all_same_value<std::size_t, Matrices::row_size...>::value>
-            constexpr matrix<U, N, M> elementwise(F f, const matrix<T, N, M> &m, const Matrices &... matrices) {
+            constexpr matrix<U, N, M> elementwise(F f, const matrix<T, N, M> &m, const Matrices &...matrices) {
                 matrix<U, N, M> op_applied = {};
                 for (std::size_t i = 0; i < N; ++i) {
                     for (std::size_t j = 0; j < M; ++j) {

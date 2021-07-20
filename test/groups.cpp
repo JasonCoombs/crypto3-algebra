@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -38,7 +38,7 @@
 
 #include <nil/crypto3/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include <boost/multiprecision/modular/base_params.hpp>
+#include <nil/crypto3/multiprecision/modular/base_params.hpp>
 
 using namespace nil::crypto3::algebra;
 
@@ -48,31 +48,31 @@ void test_mixed_add() {
 
     base = GroupType::value_type::zero();
     el = GroupType::value_type::zero();
-    el.to_special();
+    el.to_projective();
     result = base.mixed_add(el);
     assert(result == base + el);
 
     base = GroupType::value_type::zero();
     el = random_element<GroupType>();
-    el.to_special();
+    el.to_projective();
     result = base.mixed_add(el);
     assert(result == base + el);
 
     base = random_element<GroupType>();
     el = GroupType::value_type::zero();
-    el.to_special();
+    el.to_projective();
     result = base.mixed_add(el);
     assert(result == base + el);
 
     base = random_element<GroupType>();
     el = random_element<GroupType>();
-    el.to_special();
+    el.to_projective();
     result = base.mixed_add(el);
     assert(result == base + el);
 
     base = random_element<GroupType>();
     el = base;
-    el.to_special();
+    el.to_projective();
     result = base.mixed_add(el);
     assert(result == base.dbl());
 }

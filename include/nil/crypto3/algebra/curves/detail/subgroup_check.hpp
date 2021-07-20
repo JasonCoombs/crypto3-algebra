@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -26,7 +26,7 @@
 #ifndef CRYPTO3_ALGEBRA_CURVES_SUBGROUP_CHECK_HPP
 #define CRYPTO3_ALGEBRA_CURVES_SUBGROUP_CHECK_HPP
 
-#include <nil/crypto3/detail/type_traits.hpp>
+#include <nil/crypto3/algebra/type_traits.hpp>
 
 namespace nil {
     namespace crypto3 {
@@ -37,8 +37,8 @@ namespace nil {
                     //  Should be implemented as class method
                     template<typename GroupValueType,
                              typename = typename std::enable_if<
-                                 ::nil::crypto3::detail::is_curve_group<typename GroupValueType::group_type>::value &&
-                                 !::nil::crypto3::detail::is_field<typename GroupValueType::group_type>::value>::type>
+                                 is_curve_group<typename GroupValueType::group_type>::value &&
+                                 !is_field<typename GroupValueType::group_type>::value>::type>
                     bool subgroup_check(const GroupValueType &p) {
                         return (p * GroupValueType::group_type::curve_type::q).is_zero();
                     }

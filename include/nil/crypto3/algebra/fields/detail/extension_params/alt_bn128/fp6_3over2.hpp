@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -43,11 +43,11 @@ namespace nil {
 
                     /************************* ALT_BN128 ***********************************/
 
-                    template<std::size_t ModulusBits>
-                    class fp6_3over2_extension_params<fields::alt_bn128<ModulusBits>>
-                        : public params<fields::alt_bn128<ModulusBits>> {
+                    template<std::size_t Version>
+                    class fp6_3over2_extension_params<fields::alt_bn128<Version>>
+                        : public params<fields::alt_bn128<Version>> {
 
-                        typedef fields::alt_bn128<ModulusBits> base_field_type;
+                        typedef fields::alt_bn128<Version> base_field_type;
                         typedef params<base_field_type> policy_type;
 
                     public:
@@ -113,24 +113,23 @@ namespace nil {
                             0x1EE972AE6A826A7D1D9DA40771B6F589DE1AFB54342C724FA97BDA050992657F_cppui253,
                             0x10DE546FF8D4AB51D2B513CDBB25772454326430418536D15721E37E70C255C9_cppui253};
 
-                        constexpr static const std::array<modulus_type, 2> non_residue = {9, 1};
+                        constexpr static const non_residue_type non_residue = non_residue_type(0x09, 0x01);
                     };
 
-                    template<std::size_t ModulusBits>
-                    constexpr std::array<
-                        typename fp6_3over2_extension_params<alt_bn128_base_field<ModulusBits>>::modulus_type, 2> const
-                        fp6_3over2_extension_params<alt_bn128_base_field<ModulusBits>>::non_residue;
+                    template<std::size_t Version>
+                    constexpr typename fp6_3over2_extension_params<alt_bn128_base_field<Version>>::non_residue_type const
+                        fp6_3over2_extension_params<alt_bn128_base_field<Version>>::non_residue;
 
-                    template<std::size_t ModulusBits>
+                    template<std::size_t Version>
                     constexpr std::array<
-                        typename fp6_3over2_extension_params<alt_bn128_base_field<ModulusBits>>::modulus_type,
+                        typename fp6_3over2_extension_params<alt_bn128_base_field<Version>>::modulus_type,
                         6 * 2> const
-                        fp6_3over2_extension_params<alt_bn128_base_field<ModulusBits>>::Frobenius_coeffs_c1;
-                    template<std::size_t ModulusBits>
+                        fp6_3over2_extension_params<alt_bn128_base_field<Version>>::Frobenius_coeffs_c1;
+                    template<std::size_t Version>
                     constexpr std::array<
-                        typename fp6_3over2_extension_params<alt_bn128_base_field<ModulusBits>>::modulus_type,
+                        typename fp6_3over2_extension_params<alt_bn128_base_field<Version>>::modulus_type,
                         6 * 2> const
-                        fp6_3over2_extension_params<alt_bn128_base_field<ModulusBits>>::Frobenius_coeffs_c2;
+                        fp6_3over2_extension_params<alt_bn128_base_field<Version>>::Frobenius_coeffs_c2;
                 }    // namespace detail
             }        // namespace fields
         }            // namespace algebra

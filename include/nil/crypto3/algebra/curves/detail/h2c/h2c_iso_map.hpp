@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Ilias Khairullin <ilias@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Ilias Khairullin <ilias@nil.foundation>
 //
 // MIT License
 //
@@ -241,7 +241,6 @@ namespace nil {
                             return group_value_type(x_num / x_den, ci.Y * y_num / y_den, field_value_type::one());
                         }
                     };
-
                 }    // namespace detail
             }        // namespace curves
         }            // namespace algebra

@@ -1,6 +1,6 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
 //
 // MIT License
 //
@@ -28,7 +28,7 @@
 
 #include <nil/crypto3/algebra/fields/detail/exponentiation.hpp>
 
-#include <boost/multiprecision/wnaf.hpp>
+#include <nil/crypto3/multiprecision/wnaf.hpp>
 
 namespace nil {
     namespace crypto3 {
@@ -41,8 +41,8 @@ namespace nil {
                         typedef FieldParams policy_type;
 
                     public:
-                        /*constexpr static*/ const typename policy_type::non_residue_type non_residue =
-                            typename policy_type::non_residue_type(policy_type::non_residue);
+                        typedef typename policy_type::non_residue_type non_residue_type;
+                        constexpr static const non_residue_type non_residue = policy_type::non_residue;
 
                         typedef typename policy_type::underlying_type underlying_type;
 
@@ -50,77 +50,74 @@ namespace nil {
 
                         data_type data;
 
-                        element_fp4() {
+                        constexpr element_fp4() {
                             data = data_type({underlying_type::zero(), underlying_type::zero()});
                         }
 
-                        element_fp4(underlying_type in_data0, underlying_type in_data1) {
+                        constexpr element_fp4(underlying_type in_data0, underlying_type in_data1) {
                             data = data_type({in_data0, in_data1});
                         }
 
-                        element_fp4(const data_type &in_data) {
+                        constexpr element_fp4(const data_type &in_data) {
                             data = data_type({in_data[0], in_data[1]});
                         };
 
-                        element_fp4(const element_fp4 &other) {
-                            data[0] = underlying_type(other.data[0]);
-                            data[1] = underlying_type(other.data[1]);
-                        };
+                        constexpr element_fp4(const element_fp4 &B) : data {B.data} {};
 
-                        inline static element_fp4 zero() {
+                        constexpr inline static element_fp4 zero() {
                             return element_fp4(underlying_type::zero(), underlying_type::zero());
                         }
 
-                        inline static element_fp4 one() {
+                        constexpr inline static element_fp4 one() {
                             return element_fp4(underlying_type::one(), underlying_type::zero());
                         }
 
-                        bool operator==(const element_fp4 &B) const {
+                        constexpr bool operator==(const element_fp4 &B) const {
                             return (data[0] == B.data[0]) && (data[1] == B.data[1]);
                         }
 
-                        bool operator!=(const element_fp4 &B) const {
+                        constexpr bool operator!=(const element_fp4 &B) const {
                             return (data[0] != B.data[0]) || (data[1] != B.data[1]);
                         }
 
-                        element_fp4 &operator=(const element_fp4 &B) {
+                        constexpr element_fp4 &operator=(const element_fp4 &B) {
                             data[0] = B.data[0];
                             data[1] = B.data[1];
 
                             return *this;
                         }
 
-                        element_fp4 operator+(const element_fp4 &B) const {
+                        constexpr element_fp4 operator+(const element_fp4 &B) const {
                             return element_fp4(data[0] + B.data[0], data[1] + B.data[1]);
                         }
 
-                        element_fp4 doubled() const {
+                        constexpr element_fp4 doubled() const {
                             return element_fp4(data[0].doubled(), data[1].doubled());
                         }
 
-                        element_fp4 operator-(const element_fp4 &B) const {
+                        constexpr element_fp4 operator-(const element_fp4 &B) const {
                             return element_fp4(data[0] - B.data[0], data[1] - B.data[1]);
                         }
 
-                        element_fp4 &operator-=(const element_fp4 &B) {
+                        constexpr element_fp4 &operator-=(const element_fp4 &B) {
                             data[0] -= B.data[0];
                             data[1] -= B.data[1];
 
                             return *this;
                         }
 
-                        element_fp4 &operator+=(const element_fp4 &B) {
+                        constexpr element_fp4 &operator+=(const element_fp4 &B) {
                             data[0] += B.data[0];
                             data[1] += B.data[1];
 
                             return *this;
                         }
 
-                        element_fp4 operator-() const {
+                        constexpr element_fp4 operator-() const {
                             return zero() - *this;
                         }
 
-                        element_fp4 operator*(const element_fp4 &B) const {
+                        constexpr element_fp4 operator*(const element_fp4 &B) const {
                             const underlying_type A0B0 = data[0] * B.data[0], A1B1 = data[1] * B.data[1];
 
                             return element_fp4(A0B0 + mul_by_non_residue(A1B1),
@@ -132,16 +129,16 @@ namespace nil {
                             // compute squared root with Tonelli--Shanks
                         }
 
-                        element_fp4 squared() const {
+                        constexpr element_fp4 squared() const {
                             return (*this) * (*this);    // maybe can be done more effective
                         }
 
                         template<typename PowerType>
-                        element_fp4 pow(const PowerType &pwr) const {
+                        constexpr element_fp4 pow(const PowerType &pwr) const {
                             return element_fp4(power(*this, pwr));
                         }
 
-                        element_fp4 inversed() const {
+                        constexpr element_fp4 inversed() const {
 
                             /* From "High-Speed Software Implementation of the Optimal Ate Pairing over Barreto-Naehrig
                              * Curves"; Algorithm 8 */
@@ -159,7 +156,7 @@ namespace nil {
                         }
 
                         template<typename PowerType>
-                        element_fp4 Frobenius_map(const PowerType &pwr) const {
+                        constexpr element_fp4 Frobenius_map(const PowerType &pwr) const {
                             return element_fp4(
                                 data[0].Frobenius_map(pwr),
                                 typename policy_type::non_residue_type(policy_type::Frobenius_coeffs_c1[pwr % 4]) *
@@ -187,11 +184,11 @@ namespace nil {
 
                         template<typename PowerType>
                         element_fp4 cyclotomic_exp(const PowerType &exponent) const {
-                            element_fp4  res = this->one();
-                            element_fp4  this_inverse = this->unitary_inversed();
+                            element_fp4 res = this->one();
+                            element_fp4 this_inverse = this->unitary_inversed();
 
                             bool found_nonzero = false;
-                            std::vector<long> NAF = boost::multiprecision::find_wnaf(1, exponent);
+                            std::vector<long> NAF = nil::crypto3::multiprecision::find_wnaf(1, exponent);
 
                             for (long i = static_cast<long>(NAF.size() - 1); i >= 0; --i) {
                                 if (found_nonzero) {
@@ -203,8 +200,7 @@ namespace nil {
 
                                     if (NAF[i] > 0) {
                                         res = res * (*this);
-                                    }
-                                    else {
+                                    } else {
                                         res = res * this_inverse;
                                     }
                                 }
@@ -215,7 +211,7 @@ namespace nil {
                             // return *this;
                         }
 
-                        /*inline static*/ underlying_type mul_by_non_residue(const underlying_type &A) const {
+                        constexpr /*inline static*/ underlying_type mul_by_non_residue(const underlying_type &A) const {
                             return underlying_type(non_residue * A.data[1], A.data[0]);
                         }
 
@@ -233,6 +229,10 @@ namespace nil {
                             return element_fp4(aA + beta_bB, (a + b) * (A + B) - aA - bB);
                         }
                     };
+
+                    template<typename FieldParams>
+                    constexpr const typename element_fp4<FieldParams>::non_residue_type
+                        element_fp4<FieldParams>::non_residue;
 
                 }    // namespace detail
             }        // namespace fields

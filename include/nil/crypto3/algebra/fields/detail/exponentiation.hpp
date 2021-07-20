@@ -1,7 +1,7 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2020 Mikhail Komarov <nemo@nil.foundation>
-// Copyright (c) 2020 Nikita Kaskov <nbering@nil.foundation>
-// Copyright (c) 2020 Pavel Kharitonov <ipavrus@nil.foundation>
+// Copyright (c) 2020-2021 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2020-2021 Nikita Kaskov <nbering@nil.foundation>
+// Copyright (c) 2020-2021 Pavel Kharitonov <ipavrus@nil.foundation>
 //
 // MIT License
 //
@@ -29,8 +29,8 @@
 
 #include <cstdint>
 
-#include <boost/multiprecision/number.hpp>
-#include <boost/multiprecision/cpp_int.hpp>
+#include <nil/crypto3/multiprecision/number.hpp>
+#include <nil/crypto3/multiprecision/cpp_int.hpp>
 
 namespace nil {
     namespace crypto3 {
@@ -38,7 +38,7 @@ namespace nil {
             namespace fields {
                 namespace detail {
                     template<typename FieldValueType, typename NumberType>
-                    FieldValueType power(const FieldValueType &base, const NumberType &exponent) {
+                    constexpr FieldValueType power(const FieldValueType &base, const NumberType &exponent) {
                         FieldValueType result = FieldValueType::one();
 
                         if (exponent == 0)
@@ -46,12 +46,12 @@ namespace nil {
 
                         bool found_one = false;
 
-                        for (long i = boost::multiprecision::msb(exponent); i >= 0; --i) {
+                        for (long i = nil::crypto3::multiprecision::msb(exponent); i >= 0; --i) {
                             if (found_one) {
                                 result = result.squared();
                             }
 
-                            if (boost::multiprecision::bit_test(exponent, i)) {
+                            if (nil::crypto3::multiprecision::bit_test(exponent, i)) {
                                 found_one = true;
                                 result = result * base;
                             }

@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------//
-// Copyright (c) 2018-2020 Mikhail Komarov <nemo@nil.foundation>
+// Copyright (c) 2018-2021 Mikhail Komarov <nemo@nil.foundation>
 //
 // MIT License
 //
@@ -43,7 +43,7 @@ namespace nil {
                 typedef typename std::initializer_list<T>::value_type value_type;
                 typename boost::uint_t<Size>::exact result = 0;
 
-#pragma clang loop unroll(full)
+
                 for (const value_type &itr : args) {
                     result = static_cast<typename boost::uint_t<Size>::exact>(
                         (result << std::numeric_limits<value_type>::digits) | itr);
